@@ -211,9 +211,8 @@
     h += dataRow("minus", grid, grids, editable, myPid, "pair");
     h += dataRow("plus", grid, grids, editable, myPid, "pair");
     ["full", "kareta", "strit", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
-    h += compRow("dół÷10", "Suma dołu ÷ 10 (zaokrąglona)", score, "dol", "tot");
     h += compRow("+200", "Premia za kolumnę: szkółka ≥60 i cały dół bez skreśleń", score, "premia200", "bonus");
-    h += compRow("Σ", "Wynik kolumny = (szkółka + premia + dół + 200) × waga", score, "wynik", "win");
+    h += compRow("Σ", "Wynik kolumny = (szkółka + premia + dół + 200) × waga ÷ 10 (zaokrąglone)", score, "wynik", "win");
     h += "</tbody></table></div>";
     h += '<div class="grand"><span class="muted">Wynik łączny:</span> <span class="val">' + score.total + "</span></div>";
     return h;

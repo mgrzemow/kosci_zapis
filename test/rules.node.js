@@ -37,14 +37,14 @@ var s = R.scoreColumn(g, "free", 10);
 eq(s.szkolka, 105, "suma szkółki");
 eq(s.premia, 100, "premia 100 przy 105");
 eq(s.dol, 0, "dół 0 gdy pusto");
-eq(s.wynik, (105 + 100) * 10, "wynik = (szkółka+premia+dół+200)×waga");
+eq(s.wynik, Math.round((105 + 100) * 10 / 10), "wynik = round((szkółka+premia+dół+200)×waga / 10) = 205");
 
 var gx = emptyGrid(); gx.free.j6 = 30; gx.free.j5 = "X";
 eq(R.scoreColumn(gx, "free", 8).szkolka, 30, "X i puste liczą się jako 0 w sumie");
 
 var card = emptyGrid(); card.free.j6 = 30; card.down.j6 = 30;
 eq(R.scoreCard(card, { free: 10, down: 8, up: 0, harmony: 0, second: 0, anons: 0 }).total,
-  30 * 10 + 30 * 8, "wynik łączny = suma wyników kolumn");
+  Math.round(30 * 10 / 10) + Math.round(30 * 8 / 10), "wynik łączny = suma wyników kolumn (każdy ÷10)");
 
 /* ---- premia +200 ---- */
 function col(upper) { return Object.assign({}, upper, lowerNums()); }
@@ -57,16 +57,14 @@ eq(R.scoreColumn({ d: cEmpty }, "d", 8).premia200, 0, "+200=0: puste pole w dole
 var cUp = col({ j1: "X", j2: 10, j3: 15, j4: 20, j5: 25, j6: 30 }); // szkółka = 100
 eq(R.scoreColumn({ d: cUp }, "d", 8).premia200, 200, "+200: skreślenie U GÓRY dozwolone gdy szkółka ≥60");
 
-/* ---- suma dołu ÷ 10 (zaokrąglona) ---- */
+/* ---- wynik kolumny ÷ 10 (zaokrąglony) ---- */
 (function () {
-  var c = {}; R.LOWER.forEach(function (r) { c[r] = (r === "plus" || r === "minus") ? 20 : 5; }); // raw 65
-  eq(R.scoreColumn({ d: c }, "d", 1).dol, 7, "suma dołu round(65/10) = 7");
-  eq(R.scoreColumn({ d: c }, "d", 2).wynik, 7 * 2, "wynik liczy ze skalowanego dołu");
+  // szkółka 0, premia 0, dół surowy 65, p200 0, waga 12 → 65×12=780 → /10 = 78
+  var c = {}; R.LOWER.forEach(function (r) { c[r] = (r === "plus" || r === "minus") ? 20 : 5; });
+  eq(R.scoreColumn({ d: c }, "d", 12).dol, 65, "suma dołu pozostaje surowa (65)");
+  eq(R.scoreColumn({ d: c }, "d", 12).wynik, 78, "wynik = round(65×12 / 10) = 78");
 })();
-(function () {
-  var c = {}; R.LOWER.forEach(function (r) { c[r] = (r === "plus" || r === "minus") ? 20 : 4; }); // raw 60
-  eq(R.scoreColumn({ d: c }, "d", 1).dol, 6, "suma dołu round(60/10) = 6");
-})();
+eq(Math.round(7658 / 10), 766, "przykład z polecenia: 7658 → 766");
 
 /* ---- aktywne pola (kolejność kolumn) ---- */
 eq(R.activeRows(emptyGrid(), "free").length, 13, "Wolne: wszystkie 13 aktywne");

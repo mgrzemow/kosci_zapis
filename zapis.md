@@ -79,7 +79,7 @@ Przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
 > Założenie do potwierdzenia: +200 wchodzi do sumy kolumny i jest mnożone przez wagę (jak premia za szkółkę). Jeśli ma być płaskie (poza ×waga) — jedna zmiana we wzorze niżej.
 
 ## Wynik
-- **Wynik kolumny** = `(suma szkółki + premia za szkółkę + suma dołu÷10 + premia 200) × waga` (`Rules.scoreColumn`). Suma dołu jest **dzielona przez 10 i zaokrąglana**.
+- **Wynik kolumny** = `round((suma szkółki + premia za szkółkę + suma dołu + premia 200) × waga / 10)` (`Rules.scoreColumn`) — pełny wynik kolumny jest **dzielony przez 10 i zaokrąglany** do liczby całkowitej (np. 7658 → 766).
 - **Wynik łączny gracza** = suma wyników 6 kolumn (`Rules.scoreCard`).
 
 ## Zależności między polami

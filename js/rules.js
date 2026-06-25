@@ -81,14 +81,13 @@
     for (i = 0; i < UPPER.length; i++) szk += numVal(cv[UPPER[i]]);
     var prem = bonusSzkolka(szk);
     for (i = 0; i < LOWER.length; i++) dol += numVal(cv[LOWER[i]]);
-    dol = Math.round(dol / 10);                 // suma dołu ÷ 10, zaokrąglona
     var lowerCleanComplete = true;
     for (i = 0; i < LOWER.length; i++) {
       var v = cv[LOWER[i]];
       if (isEmpty(v) || isCross(v)) { lowerCleanComplete = false; break; }
     }
     var p200 = (szk >= 60 && lowerCleanComplete) ? 200 : 0;
-    var wynik = (szk + prem + dol + p200) * (weight || 0);
+    var wynik = Math.round((szk + prem + dol + p200) * (weight || 0) / 10);  // pełny wynik ÷ 10, zaokrąglony
     return { szkolka: szk, premia: prem, dol: dol, premia200: p200, wynik: wynik };
   }
 
