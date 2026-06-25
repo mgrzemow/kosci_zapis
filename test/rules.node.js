@@ -107,8 +107,10 @@ ok(R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 22).ok, "
 ok(!R.validateCell({}, "A", "free", "full", 25.5).ok, "wartość niecałkowita → błąd");
 ok(!R.validateCell({}, "A", "free", "full", 24).ok, "full < 25 (min 5 oczek) → błąd");
 ok(R.validateCell({}, "A", "free", "full", 25).ok, "full 25 (5 oczek) OK");
-ok(!R.validateCell({}, "A", "free", "kareta", 34).ok, "kareta < 35 → błąd");
-ok(R.validateCell({}, "A", "free", "kareta", 35).ok, "kareta 35 OK");
+ok(R.validateCell({}, "A", "free", "kareta", 34).ok, "kareta 34 (cztery jedynki, 4 oczka) OK");
+ok(!R.validateCell({}, "A", "free", "kareta", 35).ok, "kareta 35 (nie-wielokrotność 4 oczek) → błąd");
+ok(R.validateCell({}, "A", "free", "kareta", 54).ok, "kareta 54 (cztery szóstki) OK");
+ok(!R.validateCell({}, "A", "free", "kareta", 55).ok, "kareta > 54 → błąd");
 ok(!R.validateCell({}, "A", "free", "poker", 74).ok, "poker < 75 → błąd");
 ok(!R.validateCell({}, "A", "free", "poker", 77).ok, "poker nie-wielokrotność 5 → błąd");
 ok(R.validateCell({}, "A", "free", "poker", 80).ok, "poker 80 (wielokrotność 5) OK");
@@ -137,7 +139,7 @@ eq(R.crossedRows("strit").length, 1, "skreślenie figury nie dotyka innych pól"
 eq(R.valueFromPips("strit", 15), 45, "strit: 15 oczek → 45");
 eq(R.valueFromPips("strit", 20), 50, "strit: 20 → 50");
 eq(R.valueFromPips("full", 7), 27, "full: 7 → 27");
-eq(R.valueFromPips("kareta", 26), 56, "kareta: 26 → 56");
+eq(R.valueFromPips("kareta", 24), 54, "kareta: 24 oczka (4×6) → 54");
 eq(R.valueFromPips("poker", 30), 100, "poker: 30 → 100");
 eq(R.valueFromPips("malusie", 8), 60, "malusie: 8 oczek → 60");
 eq(R.valueFromPips("malusie", 5), 75, "malusie: 5 → 75");

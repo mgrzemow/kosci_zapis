@@ -24,7 +24,7 @@
     j1:"suma jedynek", j2:"suma dwójek", j3:"suma trójek", j4:"suma czwórek",
     j5:"suma piątek", j6:"suma szóstek",
     plus:"≥20, > „−”", minus:"≥20, < „+”", strit:"suma + 30", full:"suma + 20",
-    kareta:"4 jedn., suma + 30", malusie:"100 − 5×oczka", poker:"5 jedn., suma + 70"
+    kareta:"4 jedn.: suma 4 kości + 30", malusie:"100 − 5×oczka", poker:"5 jedn., suma + 70"
   };
   var UPPER = ["j1","j2","j3","j4","j5","j6"];                 // indeksy 0..5
   var LOWER = ["plus","minus","strit","full","kareta","malusie","poker"]; // 6..12
@@ -32,7 +32,7 @@
   // Maksymalna możliwa liczba punktów w danym wierszu (walidacja wpisu).
   var MAXES = {
     j1: 5, j2: 10, j3: 15, j4: 20, j5: 25, j6: 30,
-    plus: 30, minus: 30, strit: 50, full: 50, kareta: 60, malusie: 75, poker: 100
+    plus: 30, minus: 30, strit: 50, full: 50, kareta: 54, malusie: 75, poker: 100
   };
   // Pola, w które wpisuje się OCZKA z kości; wartość końcowa liczona z bonusem/wzorem.
   // strit/full/kareta/poker: oczka + stały bonus. malusie: 100 − 5×oczka.
@@ -49,7 +49,7 @@
     return value;
   }
   // Dolne granice (wartość końcowa) oraz wielokrotność nominału w szkółce.
-  var MINS = { full: 25, kareta: 35, poker: 75 };
+  var MINS = { full: 25, kareta: 34, poker: 75 };
   var NOMINAL = { j1: 1, j2: 2, j3: 3, j4: 4, j5: 5, j6: 6 };
 
   function isCross(v) { return v === "X" || v === "x"; }
@@ -151,13 +151,17 @@
     if (!isFinite(n) || n < 0) return { ok: false, reason: "niepoprawna liczba" };
     if (n !== Math.round(n)) return { ok: false, reason: "musi być liczbą całkowitą" };
     if (row === "malusie" && (n < 60 || n > 75)) return { ok: false, reason: "malusie: tylko 5–8 oczek (więcej — skreśl)" };
-    if (MAXES[row] != null && n > MAXES[row]) return { ok: false, reason: "za dużo — max " + MAXES[row] };
+    if (MAXES[row] != null && n > MAXES[row]) {
+      var maxMsg = BONUS[row] != null ? (pipsFromValue(row, MAXES[row]) + " oczek") : MAXES[row];
+      return { ok: false, reason: "za dużo — max " + maxMsg };
+    }
     if (MINS[row] != null && n < MINS[row]) {
-      var minMsg = isPipRow(row) ? (pipsFromValue(row, MINS[row]) + " oczek") : MINS[row];
+      var minMsg = BONUS[row] != null ? (pipsFromValue(row, MINS[row]) + " oczek") : MINS[row];
       return { ok: false, reason: "za mało — min " + minMsg };
     }
     if (NOMINAL[row] != null && n % NOMINAL[row] !== 0) return { ok: false, reason: "musi być wielokrotnością " + NOMINAL[row] };
     if (row === "strit" && n !== 45 && n !== 50) return { ok: false, reason: "strit: tylko 15 lub 20 oczek" };
+    if (row === "kareta" && (n - 30) % 4 !== 0) return { ok: false, reason: "kareta: wielokrotność 4 oczek" };
     if (row === "poker" && n % 5 !== 0) return { ok: false, reason: "poker: tylko wielokrotność 5 oczek" };
 
     var fl = floorFor(allGrids, pid, col, row);

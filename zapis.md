@@ -41,7 +41,7 @@ Skreślenie (`X`) liczy się jak wypełnienie — w kolumnach z kolejnością pr
 | `minus` (−) | suma 5 kości | ≥ 20, „−" < „+" | 30 |
 | `strit` | mały lub duży | suma 5 kości + 30 | 50 |
 | `full` | trójka + para (pięć jednakowych też liczy się jako full) | suma 5 kości + 20 | 50 |
-| `kareta` | 4 jednakowe | suma 5 kości + 30 | 60 |
+| `kareta` | 4 jednakowe | suma **4 jednakowych** kości + 30 | 54 |
 | `malusie` | im mniej oczek, tym lepiej (tylko 5–8 oczek) | 100 − 5 × (suma oczek) | 75 |
 | `poker` | 5 jednakowych | suma 5 kości + 70 | 100 |
 
@@ -54,7 +54,7 @@ W polach z własnym bonusem/wzorem **wpisuje się tylko oczka z kości**, a pole
 |---|---|---|---|
 | strit | 15 / 20 | 45 / 50 | oczka + 30 |
 | full | 7 … 30 | 27 … 50 | oczka + 20 |
-| kareta | … 30 | … 60 | oczka + 30 |
+| kareta | 4 … 24 | 34 … 54 | oczka (4 kości) + 30 |
 | poker | 5 … 30 | 75 … 100 | oczka + 70 |
 | malusie | 5 … 8 | 75 … 60 | 100 − 5×oczka (9+ = skreśl → 0) |
 
@@ -92,8 +92,8 @@ Przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
 Wpis jest przyjmowany tylko, gdy przejdzie walidację:
 1. **`X`** (skreślenie) — zawsze dozwolone (także poniżej progu).
 2. Liczba **całkowita**, nieujemna (puste / nie-liczba / ułamek → odrzucone).
-3. Nie większa niż **max** i nie mniejsza niż **min** wiersza (`Rules.MAXES`, `Rules.MINS`): full ≥ 5 oczek (25), kareta ≥ 5 (35), poker ≥ 5 (75).
-4. **Dozwolone zbiory**: szkółka `j1…j6` — wielokrotność nominału (`Rules.NOMINAL`; np. dwójki 0,2,…,10); **strit** — tylko 15 lub 20 oczek (45/50); **poker** — wielokrotność 5 oczek (75,80,…,100); **malusie** — tylko 5–8 oczek (75/70/65/60; 9+ = skreśl).
+3. Nie większa niż **max** i nie mniejsza niż **min** wiersza (`Rules.MAXES`, `Rules.MINS`): full ≥ 5 oczek (25), kareta ≥ 4 (34), poker ≥ 5 (75).
+4. **Dozwolone zbiory**: szkółka `j1…j6` — wielokrotność nominału (`Rules.NOMINAL`; np. dwójki 0,2,…,10); **strit** — tylko 15 lub 20 oczek (45/50); **poker** — wielokrotność 5 oczek (75,80,…,100); **kareta** — wielokrotność 4 oczek (4,8,…,24 → 34…54); **malusie** — tylko 5–8 oczek (75/70/65/60; 9+ = skreśl).
 5. Nie mniejsza niż **próg „≥ X"** od innych graczy.
 6. Dla `plus`/`minus`: ≥ 20 oraz zachowana relacja „+" > „−".
 
