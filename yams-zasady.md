@@ -1,87 +1,91 @@
-# Gra w kości — zasady (wariant z wagami i anonsem)
+# Gra w kości — pełne zasady (wariant z wagami, anonsem, harmonią i pojedynkami)
 
-> Status: zaakceptowane 2026-06-24 (wersja robocza pod aplikację).
-> Formularz / karta wyników: `yams-karta-wynikow.html`.
+> Zasady dla graczy (to „co", bez kodu). Implementacja, model danych i funkcje: [zapis.md](zapis.md). Opis aplikacji: [opis.md](opis.md). Aplikacja: https://mgrzemow.github.io/kosci_zapis/
+> Status: aktualne 2026-06-25.
 
 ## Materiał i przebieg
-
-- 5 kości sześciennych.
-- **Każdy gracz ma własną kartę wyników.** Karty są jednak od siebie zależne (patrz: „Zależność między graczami").
-- W turze masz **3 rzuty**: pierwszy wszystkimi kośćmi, w drugim i trzecim odkładasz wybrane i przerzucasz resztę.
-- Po turze **wpisujesz wynik do jednego pola** (jedna kolumna) **albo skreślasz** pole.
-- Gra trwa, aż wszystkie pola każdej kolumny są wypełnione lub skreślone.
+- **5 kości** sześciennych. **Każdy gracz ma własną kartę**; karty są zależne (próg „≥ X", patrz niżej).
+- Tura: **3 rzuty** (pierwszy wszystkimi, w 2. i 3. odkładasz wybrane i przerzucasz resztę). Po turze **wpisujesz wynik do jednego pola** albo **skreślasz** pole.
+- Gra trwa, aż u wszystkich każde pole jest wypełnione lub skreślone.
 
 ## Kolumny (6) i wagi
-
-Na początku gry każda kolumna dostaje **losowo jedną z wag: 8, 10, 12, 14, 16, 18** (każda waga użyta raz). Cały wynik kolumny jest mnożony przez jej wagę, więc opłaca się ładować wysokie układy do kolumn o dużej wadze.
+Na start każda kolumna dostaje **losowo jedną z wag: 8, 10, 12, 14, 16, 18** (po jednej, wspólne dla wszystkich). Wynik kolumny mnoży się przez jej wagę — opłaca się ładować wysokie układy do kolumn o dużej wadze.
 
 | Kolumna | Reguła wpisywania |
 |---|---|
 | Wolne | dowolna kolejność |
 | Dół | z góry na dół (po kolei) |
 | Góra | z dołu do góry (po kolei) |
-| Harmonia | start od **kreski** (środka); co turę dokładasz pole w górę **albo** w dół (rozrasta się od środka w obie strony) |
-| Drugi rzut | wynik wpisujesz **po dokładnie 2 rzutach** (nie po 3) |
-| Anons | po **1. rzucie** mówisz „Anons" i musisz w tej kolumnie zapisać wynik (wiersz dowolny) |
+| Harmonia | od **kreski** (środka) w górę **albo** w dół — rośnie w obie strony |
+| Drugi rzut | wpis po **dokładnie 2 rzutach** |
+| Anons | po **1. rzucie** mówisz „Anons" i musisz w tej kolumnie zapisać |
 
-## Układ karty (wiersze, od góry)
+Liczbę rzutów i „Anons" pilnują gracze przy stole — aplikacja w kolumnach **Anons** i **Drugi rzut** pozwala na dowolną kolejność.
 
-1. **Szkółka** — nominały: jedynki, dwójki, trójki, czwórki, piątki, szóstki (suma oczek danego nominału).
-2. **Suma szkółki** — liczy się sama (suma pól 1–6).
-3. **Premia za szkółkę** — liczy się sama (progi niżej).
-4. **─── Kreska ───** — środek planszy; stąd startuje Harmonia. To nie jest wiersz do wpisywania.
-5. **+ (większe)** oraz **− (mniejsze)** — wiersze pod kreską, **niezależne od figur**.
-6. **Figury**: Strit, Full, Kareta, Malusie, Poker.
-7. **Suma dół**, **Premia za kolumnę (+200)**, **Wynik kolumny** — liczą się same.
+## Układ karty (od góry)
+1. **Szkółka:** 1, 2, 3, 4, 5, 6.
+2. **Suma szkółki** i **Premia za szkółkę** (liczą się same).
+3. **─── Kreska ───** — środek planszy; stąd startuje Harmonia (nie jest polem do wpisania).
+4. Pod kreską: **− (mniejsze)**, **+ (większe)**.
+5. Figury: **Full, Kareta, Strit, Malusie, Poker**.
+6. **Wynik kolumny (Σ//10)**, niżej **różnice do przeciwników** i **Wynik ost.** kolumny.
 
-## Punktacja figur
+## Co się wpisuje: OCZKA z kości
+W polach **Strit, Full, Kareta, Poker, Malusie** wpisujesz tylko **oczka z kości**, a pole samo przelicza na wartość końcową (po wyjściu z pola widać wynik, po wejściu w edycję wraca do oczek; podpowiedzi pokazują oczka).
 
-| Figura | Warunek | Punkty |
+| Pole | Wpisujesz (oczka) | Pole pokazuje |
 |---|---|---|
-| Strit | mały lub duży (5 kolejnych) | suma 5 kości **+ 30** |
-| Full | trójka + para | suma 5 kości **+ 20** |
-| Kareta | 4 jednakowe | suma 5 kości **+ 30** |
-| Poker | 5 jednakowych | suma 5 kości **+ 70** |
-| Malusie | im mniej oczek, tym lepiej | `100 − 5 × (suma oczek)` |
+| Strit | 15 lub 20 | 45 / 50 |
+| Full | 5 … 30 | 25 … 50 |
+| Kareta | 4 … 24 (co 4) | 34 … 54 |
+| Poker | 5,10,…,30 | 75 … 100 |
+| Malusie | 5 … 8 | 75 / 70 / 65 / 60 |
 
-Malusie — przykłady: 5 oczek → 75, 6 → 70, 7 → 65, 8 → 60 (każde oczko więcej = −5).
+Pola **1–6**, **+**, **−** wpisujesz wprost (bez przelicznika).
 
-### Wiersze + i − (para)
+## Punktacja
+### Szkółka 1–6
+Suma oczek danego nominału (jedynki = liczba 1, dwójki = 2 × liczba 2, …). Wartość musi być **wielokrotnością nominału** (np. dwójki: 0, 2, 4, 6, 8, 10).
 
-- W obu polach wpisujesz **sumę 5 kości**.
-- Obie wartości muszą być **≥ 20**, przy czym **„+" > „−"**.
-- Obie wartości **dodają się** do sumy dołu (to nie jest różnica).
-- Są **powiązane**: skreślenie jednego pola **zeruje też drugie** (oba liczą się wtedy za 0).
+### Pola + i − (pod kreską)
+- Wpisujesz **sumę 5 kości**. Obie wartości **≥ 20**, przy czym **„+" > „−"**.
+- Obie **dodają się** do sumy dołu. Są **powiązane**: skreślenie jednego **zeruje oba**.
+
+### Figury (wpisujesz oczka)
+- **Strit** (5 kolejnych) — mały (15 oczek) → **45**, duży (20) → **50**. Tylko te dwie wartości.
+- **Full** (trójka + para; pięć jednakowych też się liczy) — oczka + **20** (25 … 50).
+- **Kareta** (4 jednakowe) — liczysz **tylko te 4 kości**: oczka 4, 8, …, 24 (wielokrotność 4) + **30** → 34 … 54.
+- **Malusie** (im mniej oczek, tym lepiej) — **tylko 5–8 oczek**: 5 → 75, 6 → 70, 7 → 65, 8 → 60. **9 i więcej = skreślenie (0).**
+- **Poker** (5 jednakowych) — oczka 5, 10, …, 30 (wielokrotność 5) + **70** → 75 … 100.
 
 ## Premie
+- **Premia za szkółkę** (osobno w każdej kolumnie, od sumy nominałów 1–6): ≥ 60 → **+30**, ≥ 70 → **+50**, ≥ 80 → **+100**.
+- **Premia za kolumnę: +200** — gdy w kolumnie: suma szkółki **≥ 60** (skreślenia u góry dozwolone) **oraz** **cały dół wypełniony bez ani jednego skreślenia**.
 
-- **Premia za szkółkę** (od sumy nominałów 1–6, osobno w każdej kolumnie):
-  - ≥ 60 → **+30**
-  - ≥ 70 → **+50**
-  - ≥ 80 → **+100**
-- **Premia za kolumnę: +200** — przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
-  - suma szkółki (góra) **≥ 60** — skreślenie u góry jest dozwolone (skreślone pole liczy się jako 0), liczy się tylko końcowa suma;
-  - **cały dół wypełniony bez ani jednego skreślenia**.
+## Wynik kolumny
+`(suma szkółki + premia za szkółkę + suma dołu + 200) × waga`, a następnie **÷ 10 i zaokrąglony** do liczby całkowitej (np. 7658 → **766**). To wynik **bazowy** kolumny (na karcie: **Σ//10**).
+
+## Pojedynki (head-to-head) — modyfikacja zapisu
+Pod wynikiem bazowym, dla **każdego przeciwnika** liczymy różnicę w **każdej kolumnie**:
+- **różnica = mój wynik kolumny − wynik przeciwnika** (dodatnia podbija mój wynik, ujemna obniża).
+- **Dublowanie:** jeśli w kolumnie proporcja wyników **≥ 2×** (także gdy ktoś ma 0, a drugi > 0), różnicę liczymy **podwójnie**. Taki wpis jest **pogrubiony** — zielony na „+", czerwony na „−".
+- **Wynik ost. kolumny** = wynik bazowy + suma różnic do wszystkich przeciwników (z dublowaniem).
+- **Ostateczny wynik gracza** = suma „wyników ost." z 6 kolumn.
+
+Symbole przy imieniu **przeciwnika** (z Twojej perspektywy), **tyle ile kolumn**:
+- **★ złota gwiazdka** — w tylu kolumnach **Ty dublujesz** tego przeciwnika.
+- **☠ czerwona czaszka** — w tylu kolumnach **on dubluje Ciebie**.
 
 ## Skreślanie
+- Wpisujesz „x" → pole pokazuje **X** i liczy się za **0** (dobrowolnie lub z konieczności).
+- Para **+/−** skreśla się wspólnie; skreślone pole **przestaje wyznaczać próg „≥"** dla innych.
+- W kolumnach z kolejnością (Dół/Góra/Harmonia) skreślasz tylko bieżące pole; w **Anonsie** — po zapowiedzi; wyjątek **Drugi rzut** — można skreślić nawet po 3. rzucie (pilnują gracze).
 
-- Pole można skreślić **dobrowolnie lub z konieczności** — wtedy liczy się za **0** (w formularzu wpisujesz „x", pokazuje się „X").
-- W parze **+ / −**: skreślenie jednego **zeruje oba**, a takie skreślone pole **przestaje wyznaczać próg „≥"** dla innych graczy (mogą teraz wpisać mniej).
-- W kolumnach z narzuconą kolejnością (Dół, Góra, Harmonia) skreślasz **tylko bieżące pole w kolejności** — nie można przeskakiwać.
-- W kolumnie **Anons** skreślić można **tylko po zapowiedzi** „Anons" (po 1. rzucie).
-- Wyjątek — kolumna **Drugi rzut**: można skreślić **nawet po 3. rzucie**, gdy nie da się już nic wpisać.
+## Zależność między graczami (próg „≥ X")
+W danym polu (ta sama figura, ta sama kolumna) możesz wpisać wartość **nie niższą** niż najwyższa, którą wpisali tam już inni. Pole skreślone (X) lub puste u innych **nie** podnosi progu. W aplikacji widać to na żywo: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek).
 
-## Zależność między graczami
+## Koniec gry
+Gdy karty wszystkich graczy są kompletne → **ranking** (ostateczne wyniki malejąco) u każdego.
 
-- Każdy ma własną kartę, ale w **danym polu** (ta sama figura, ta sama kolumna) możesz wpisać wartość **nie niższą** niż **najwyższa**, którą w to samo pole wpisali już inni gracze.
-- W aplikacji ma to być pokazywane **na żywo** — np. jako podpowiedź „≥ X" w pustym polu.
-- Pole skreślone (X = 0) **nie wyznacza** progu „≥" dla innych.
-
-## Liczenie wyniku
-
-- **Wynik kolumny** = `(suma szkółki + premia za szkółkę + suma dół + premia za kolumnę 200) × waga`.
-- **Wynik łączny gracza** = suma wyników 6 kolumn.
-
-## Do potwierdzenia (założenie)
-
-- Premia **+200** jest obecnie liczona **wewnątrz** mnożenia przez wagę (tak jak premia za szkółkę), czyli realnie daje `200 × waga`. Do ustalenia, czy ma być **płaska** (dodawana po przemnożeniu).
+## Do potwierdzenia (jedyne otwarte założenie)
+Premia **+200** jest obecnie liczona **wewnątrz** mnożenia przez wagę (jak premia za szkółkę). Do ustalenia, czy ma być **płaska** (dodawana po przemnożeniu).

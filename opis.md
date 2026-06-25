@@ -36,7 +36,7 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 ## Ekrany i przepływ
 1. **Nowa gra** (host) — dodaje imiona graczy (domyślnie: Żaneta, Anna, Piotr, Michał), klika „Utwórz grę". Losują się wagi 6 kolumn (wspólne dla całej gry), powstaje jeden link.
 2. **Wejście przez link** — gracz wybiera swoje imię z listy → widzi swoją kartę.
-3. **Gra** — zakładki: własna (imię pogrubione, pierwsza) edytowalna, pozostałe tylko do podglądu. Przy każdym imieniu suma punktów; prowadzący ma **★**. Wszystko aktualizuje się na żywo.
+3. **Gra** — zakładki: własna (imię pogrubione, pierwsza) edytowalna, pozostałe tylko do podglądu. Przy każdym imieniu **ostateczny wynik** (prowadzący na zielono); przy imionach przeciwników symbole pojedynków (**★** gdy Ty dublujesz, **☠** gdy on dubluje Ciebie). Wszystko aktualizuje się na żywo.
 4. **Koniec** — gdy u wszystkich graczy każde pole jest wypełnione lub skreślone, pojawia się **ranking** u każdego.
 
 ## Tożsamość, reconnect, zmiana gracza
@@ -58,4 +58,4 @@ powershell -ExecutionPolicy Bypass -File deploy.ps1 "opis zmiany"
 ## Testy
 Silnik reguł (`js/rules.js`) ma pełny zestaw testów jednostkowych w `test/rules.node.js` — uruchomienie: `node test/rules.node.js`. Pokrycie testowe opisane jest na końcu [zapis.md](zapis.md).
 
-> Po każdej zmianie funkcjonalnej aktualizujemy `opis.md` i `zapis.md`.
+> Po każdej zmianie funkcjonalnej aktualizujemy `opis.md`, `zapis.md` **oraz** `yams-zasady.md` (zasady dla graczy) i testy `test/rules.node.js`.

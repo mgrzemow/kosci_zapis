@@ -53,7 +53,7 @@ W polach z własnym bonusem/wzorem **wpisuje się tylko oczka z kości**, a pole
 | Pole | Wpisujesz (oczka) | Pole pokazuje | Przelicznik |
 |---|---|---|---|
 | strit | 15 / 20 | 45 / 50 | oczka + 30 |
-| full | 7 … 30 | 27 … 50 | oczka + 20 |
+| full | 5 … 30 | 25 … 50 | oczka + 20 |
 | kareta | 4 … 24 | 34 … 54 | oczka (4 kości) + 30 |
 | poker | 5 … 30 | 75 … 100 | oczka + 70 |
 | malusie | 5 … 8 | 75 … 60 | 100 − 5×oczka (9+ = skreśl → 0) |
