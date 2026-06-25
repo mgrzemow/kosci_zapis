@@ -12,8 +12,10 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 5. W zakładkach widzisz karty innych graczy (tylko podgląd).
 6. Gdy u wszystkich wszystkie pola są wypełnione/skreślone → **ranking**.
 
-## Zasady gry
-Pełne zasady: [yams-zasady.md](yams-zasady.md).
+## Dokumentacja
+- **Reguły gry** (kolumny, kolejność, definicje figur, koniec gry): [yams-zasady.md](yams-zasady.md)
+- **Reguły zapisu/punktacji** (wartości, premie, wynik ÷10, pojedynki, walidacja): [zapis.md](zapis.md)
+- **Opis aplikacji** (architektura, model danych, ekrany, deploy, testy): [opis.md](opis.md)
 
 ## Architektura (bez builda)
 - Statyczny frontend (czysty JS, brak narzędzi), hostowany na GitHub Pages.

@@ -33,6 +33,19 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 | `deploy.ps1` | wdrożenie z auto-podbiciem wersji zasobów |
 | `opis.md`, `zapis.md`, `yams-zasady.md` | dokumentacja |
 
+## Model danych (Firebase Realtime Database)
+```
+sessions/{klucz}
+  meta:     { status: "active"|"finished", createdAt, wagi: { <kolumna>: 8..18 } }
+  players:  { <pid>: { name } }            # pid = "p0","p1",… nadane przy tworzeniu
+  grids:    { <pid>: { <kolumna>: { <wiersz>: wartość } } }   # wartość: liczba | "X"
+  presence: { <pid>: <clientId> }          # obecność (ostrzeżenie o zajętym imieniu)
+```
+- **Kolumny (klucze):** `free` (Wolne), `down` (Dół), `up` (Góra), `harmony` (Harmonia), `second` (Drugi rzut), `anons` (Anons).
+- **Wiersze (13, od góry):** `j1`…`j6`, `minus`, `plus`, `full`, `kareta`, `strit`, `malusie`, `poker`.
+- **Wagi** losowane raz przy tworzeniu (permutacja 8,10,12,14,16,18), wspólne dla wszystkich graczy.
+- Znaczenie pól (reguły gry) → [yams-zasady.md](yams-zasady.md); sposób liczenia → [zapis.md](zapis.md).
+
 ## Ekrany i przepływ
 1. **Nowa gra** (host) — dodaje imiona graczy (domyślnie: Żaneta, Anna, Piotr, Michał), klika „Utwórz grę". Losują się wagi 6 kolumn (wspólne dla całej gry), powstaje jeden link.
 2. **Wejście przez link** — gracz wybiera swoje imię z listy → widzi swoją kartę.
@@ -56,6 +69,16 @@ powershell -ExecutionPolicy Bypass -File deploy.ps1 "opis zmiany"
 ```
 
 ## Testy
-Silnik reguł (`js/rules.js`) ma pełny zestaw testów jednostkowych w `test/rules.node.js` — uruchomienie: `node test/rules.node.js`. Pokrycie testowe opisane jest na końcu [zapis.md](zapis.md).
+Silnik reguł (`js/rules.js`) ma pełny zestaw testów jednostkowych w `test/rules.node.js` (uruchomienie: `node test/rules.node.js`). Sprawdzają **wszystkie reguły silnika**:
+- struktura (kolumny, wiersze, maksima), losowanie wag (permutacja),
+- premia za szkółkę (progi), suma szkółki/dołu, wynik kolumny (× waga ÷ 10) i wynik łączny, traktowanie `X`/pustych jako 0,
+- premia +200 (spełniona; <60; skreślenie/puste w dole; skreślenie u góry dozwolone),
+- aktywne pola każdej kolumny (Wolne/Drugi rzut/Anons, Dół, Góra, Harmonia — granice i wyczerpanie),
+- próg „≥ X" (max innych, pominięcie siebie, ignorowanie `X`),
+- walidacja (X zawsze; całkowita/nieujemna; max i min; wielokrotności szkółki/poker/kareta; strit 45/50; malusie 5–8; +/−),
+- skreślanie pary +/−, kompletność karty,
+- pojedynki head-to-head: dublowanie (≥2×, 0 vs >0), różnice, finał kolumny, suma końcowa, flagi ☠/★.
+
+Poza silnikiem (logika UI w `app.js`, weryfikowana ręcznie w przeglądarce): synchronizacja na żywo, dymki, zakładki/sumy, zmiana gracza, odkreślanie pary, podpięcie Firebase.
 
 > Po każdej zmianie funkcjonalnej aktualizujemy `opis.md`, `zapis.md` **oraz** `yams-zasady.md` (zasady dla graczy) i testy `test/rules.node.js`.
