@@ -48,7 +48,7 @@ h2{font-size:16px;font-weight:600;margin:0 0 10px}
 .tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 8px}
 .tab{font-size:13px;padding:6px 11px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--surface);color:var(--t2);cursor:pointer}
 .tab.active{background:var(--info-bg);color:var(--t-info);border-color:transparent;font-weight:500}
-.tab.me{font-weight:500}
+.tab.me{font-weight:700}
 .tab .done{color:var(--t-ok);margin-left:4px}
 .tscore{font-size:12px;font-weight:600;color:var(--t2);margin-left:3px}
 .tscore.lead{color:var(--t-ok)}

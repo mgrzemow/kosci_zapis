@@ -63,6 +63,8 @@ ok(R.validateCell({ pB: {} }, "pB", "free", "j1", 6).ok === false, "jedynki max 
 ok(R.validateCell({ pB: {} }, "pB", "free", "j1", 5).ok === true, "jedynki 5 OK");
 ok(R.validateCell({ pB: {} }, "pB", "free", "poker", 101).ok === false, "poker max 100");
 ok(R.validateCell({ pB: {} }, "pB", "free", "malusie", 80).ok === false, "malusie max 75");
+ok(R.validateCell({ pB: {} }, "pB", "free", "full", 50).ok === true, "full 50 OK (poker jako full)");
+ok(R.validateCell({ pB: {} }, "pB", "free", "full", 51).ok === false, "full max 50");
 
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

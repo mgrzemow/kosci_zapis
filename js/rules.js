@@ -32,7 +32,7 @@
   // Maksymalna możliwa liczba punktów w danym wierszu (walidacja wpisu).
   var MAXES = {
     j1: 5, j2: 10, j3: 15, j4: 20, j5: 25, j6: 30,
-    plus: 30, minus: 30, strit: 50, full: 48, kareta: 60, malusie: 75, poker: 100
+    plus: 30, minus: 30, strit: 50, full: 50, kareta: 60, malusie: 75, poker: 100
   };
 
   function isCross(v) { return v === "X" || v === "x"; }

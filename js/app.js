@@ -162,7 +162,7 @@
     order.forEach(function (pid) {
       var me = pid === myPid;
       var done = R.cardComplete(grids[pid] || {});
-      var label = me ? "JA" : esc(players[pid].name);
+      var label = esc(players[pid].name);
       var lead = maxT > 0 && totals[pid] === maxT;
       h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' +
         label + ' <span class="tscore' + (lead ? " lead" : "") + '">' + (lead ? "★ " : "") + totals[pid] + "</span>" +
