@@ -80,7 +80,7 @@ Przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
 
 ## Wynik
 - **Wynik kolumny** = `round((suma szkółki + premia za szkółkę + suma dołu + premia 200) × waga / 10)` (`Rules.scoreColumn`) — pełny wynik kolumny jest **dzielony przez 10 i zaokrąglany** do liczby całkowitej (np. 7658 → 766).
-- **Wynik łączny gracza** = suma wyników 6 kolumn (`Rules.scoreCard`).
+Wynik kolumny (Σ//10) to wartość **bazowa**. Ostateczny wynik gracza liczony jest z różnic head-to-head — patrz niżej.
 
 ## Zależności między polami
 - **Próg „≥ X" (między graczami)** — w danym polu wartość liczbowa nie może być niższa niż najwyższa, jaką w to samo pole wpisali **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Zależność jest międzykartowa i przeliczana na żywo z aktualnego stanu sesji.
@@ -107,6 +107,17 @@ Edycja własnych, już wypełnionych pól jest dozwolona — po zmianie obowiąz
 - Para „+"/„−" skreśla się wspólnie; skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
 - (Reguły kolejności skreślania przy stole — Anons po zapowiedzi, Drugi rzut nawet po 3. rzucie — są po stronie graczy; aplikacja ich nie pilnuje.)
 
+## Różnice między graczami (head-to-head)
+Pod wynikiem kolumny (Σ//10) dochodzą wiersze modyfikujące zapis (`Rules.columnBases`, `Rules.gameStandings`):
+- **Tyle wierszy ilu przeciwników** (graczy − 1). Dla każdego przeciwnika, w każdej kolumnie: **różnica = mój wynik kolumny − wynik przeciwnika** (dodatnia podbija, ujemna obniża).
+- **Dublowanie:** jeśli w kolumnie proporcja wyników ≥ 2× (`Rules.isDoubled`; 0 vs >0 też liczy się jako dublowanie), różnicę liczymy **×2**. Taki wpis jest pogrubiony — zielony gdy „+", czerwony gdy „−".
+- **Wynik ost. kolumny** (`Σ ost.`) = mój wynik + suma różnic do przeciwników (z dublowaniem).
+- **Ostateczny wynik gracza** = suma „wyników ost." wszystkich 6 kolumn.
+
+Symbole przy imieniu (zakładki i ranking):
+- **☠ czerwona czaszka** — gdy przeciwnik dubluje Cię w którejkolwiek kolumnie.
+- **★ złota gwiazdka** — gdy Ty dublujesz przeciwnika w którejkolwiek kolumnie.
+
 ## Koniec gry
 Karta gracza jest **kompletna**, gdy każde z 78 pól (6 kolumn × 13 wierszy) jest wypełnione lub skreślone (`Rules.cardComplete`). Gdy kompletne są karty wszystkich graczy, `meta.status` przechodzi na `finished` i u każdego pojawia się ranking (suma punktów malejąco).
 
@@ -118,6 +129,7 @@ Karta gracza jest **kompletna**, gdy każde z 78 pól (6 kolumn × 13 wierszy) j
 - aktywne pola każdej kolumny (Wolne/Drugi rzut/Anons, Dół, Góra, Harmonia — w tym granice i wyczerpanie),
 - próg ≥ X (max innych, pominięcie siebie, ignorowanie `X`),
 - walidacja (X zawsze; całkowita/nieujemna; max i min dla każdego wiersza; wielokrotność szkółki; strit 45/50; poker ×5; próg; reguły +/−),
-- skreślanie pary +/−, kompletność karty.
+- skreślanie pary +/−, kompletność karty,
+- różnice head-to-head: dublowanie (proporcja ≥2×, 0 vs >0), wartości różnic, finał kolumny, suma końcowa, flagi ☠/★.
 
 Poza silnikiem (logika UI w `app.js`, weryfikowana ręcznie w przeglądarce): synchronizacja na żywo, dymki, zakładki/sumy, zmiana gracza, odkreślanie pary, podpięcie Firebase.

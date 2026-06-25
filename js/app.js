@@ -138,6 +138,9 @@
   /* ---------- Ekran 3: Gra ---------- */
   function renderGame(sid, myPid) {
     var players = curSession.players || {}, grids = curSession.grids || {};
+    var weights = (curSession.meta && curSession.meta.weights) || {};
+    var playerIds = Object.keys(players);
+    var standings = R.gameStandings(R.columnBases(grids, weights, playerIds), playerIds);
     var finished = curSession.meta && curSession.meta.status === "finished";
     var focus = captureFocus();
 
@@ -149,30 +152,27 @@
     if (curPresence[myPid] && curPresence[myPid] !== clientId())
       h += '<div class="warn">Uwaga: pod Twoim imieniem gra ktoś jeszcze na innym urządzeniu. Wpisy mogą się nadpisywać.</div>';
 
-    if (finished) h += rankingHTML(sid);
+    if (finished) h += rankingHTML(standings);
 
-    var weights = (curSession.meta && curSession.meta.weights) || {};
-    var totals = {}, maxT = 0;
-    Object.keys(players).forEach(function (pid) {
-      var t = R.scoreCard(grids[pid] || {}, weights).total;
-      totals[pid] = t; if (t > maxT) maxT = t;
-    });
+    var maxT = -Infinity;
+    playerIds.forEach(function (pid) { if (standings[pid].total > maxT) maxT = standings[pid].total; });
     h += '<div class="tabs">';
-    var order = [myPid].concat(Object.keys(players).filter(function (p) { return p !== myPid; }));
+    var order = [myPid].concat(playerIds.filter(function (p) { return p !== myPid; }));
     order.forEach(function (pid) {
-      var me = pid === myPid;
+      var me = pid === myPid, st = standings[pid];
       var done = R.cardComplete(grids[pid] || {});
-      var label = esc(players[pid].name);
-      var lead = maxT > 0 && totals[pid] === maxT;
+      var marks = (st.skull ? '<span class="skull" title="przeciwnik dubluje Cię w którejś kolumnie">☠</span>' : "") +
+        (st.star ? '<span class="gstar" title="dublujesz przeciwnika w którejś kolumnie">★</span>' : "");
+      var lead = st.total === maxT;
       h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' +
-        label + ' <span class="tscore' + (lead ? " lead" : "") + '">' + (lead ? "★ " : "") + totals[pid] + "</span>" +
+        marks + esc(players[pid].name) + ' <span class="tscore' + (lead ? " lead" : "") + '">' + st.total + "</span>" +
         (done ? ' <span class="done">✓</span>' : "") + "</button>";
     });
     h += "</div>";
 
     if (errorMsg) h += '<div class="toast">' + esc(errorMsg) + "</div>";
 
-    h += '<div id="cardArea">' + cardTableHTML(sid, activeTab, myPid) + "</div>";
+    h += '<div id="cardArea">' + cardTableHTML(sid, activeTab, myPid, standings) + "</div>";
 
     h += '<div class="legend">Wpisz liczbę lub <b>x</b> (skreślenie). „≥ X” = próg od innych graczy. ' +
       'Kolumny: 1. wolne · ↓ dół · ↑ góra · ↕ harmonia · 2rz drugi rzut · A anons. Przytrzymaj nagłówek lub wiersz, by zobaczyć pełny opis.</div>';
@@ -192,7 +192,7 @@
     restoreFocus(focus);
   }
 
-  function cardTableHTML(sid, viewPid, myPid) {
+  function cardTableHTML(sid, viewPid, myPid, standings) {
     var weights = (curSession.meta && curSession.meta.weights) || {};
     var grids = curSession.grids || {};
     var grid = grids[viewPid] || {};
@@ -212,10 +212,25 @@
     h += dataRow("plus", grid, grids, editable, myPid, "pair");
     ["full", "kareta", "strit", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
     h += compRow("+200", "Premia za kolumnę: szkółka ≥60 i cały dół bez skreśleń", score, "premia200", "bonus");
-    h += compRow("Σ", "Wynik kolumny = (szkółka + premia + dół + 200) × waga ÷ 10 (zaokrąglone)", score, "wynik", "win");
-    h += "</tbody></table></div>";
-    h += '<div class="grand"><span class="muted">Wynik łączny:</span> <span class="val">' + score.total + "</span></div>";
+    h += compRow("Σ//10", "Wynik kolumny = (szkółka + premia + dół + 200) × waga ÷ 10 (zaokrąglone)", score, "wynik", "win");
+    var players = curSession.players || {}, st = standings[viewPid];
+    Object.keys(players).forEach(function (opp) {
+      if (opp === viewPid) return;
+      h += '<tr class="diffrow"><td class="fig" title="różnica punktów do gracza ' + esc(players[opp].name) + '">Δ ' + esc(players[opp].name) + "</td>";
+      R.COLS.forEach(function (c) { h += "<td>" + diffCell(st.cols[c].diffs[opp]) + "</td>"; });
+      h += "</tr>";
+    });
+    h += '<tr class="finalrow"><td class="fig" title="wynik kolumny po różnicach (z dublowaniem)">Σ ost.</td>';
+    R.COLS.forEach(function (c) { h += '<td><span class="out">' + st.cols[c].final + "</span></td>"; });
+    h += "</tr></tbody></table></div>";
+    h += '<div class="grand"><span class="muted">Wynik łączny:</span> <span class="val">' + st.total + "</span></div>";
     return h;
+  }
+  function diffCell(d) {
+    if (!d) return '<span class="ro muted">·</span>';
+    var v = d.value, s = (v > 0 ? "+" : "") + v;
+    if (d.doubled) return '<span class="dd ' + (v < 0 ? "ddneg" : "ddpos") + '">' + s + "</span>";
+    return '<span class="ro">' + s + "</span>";
   }
 
   function compRow(label, title, score, kind, cls) {
@@ -344,16 +359,16 @@
   }
 
   /* ---------- Ranking ---------- */
-  function rankingHTML(sid) {
-    var players = curSession.players || {}, grids = curSession.grids || {};
-    var weights = (curSession.meta && curSession.meta.weights) || {};
+  function rankingHTML(standings) {
+    var players = curSession.players || {};
     var arr = Object.keys(players).map(function (pid) {
-      return { name: players[pid].name, total: R.scoreCard(grids[pid] || {}, weights).total };
+      return { name: players[pid].name, total: standings[pid].total, skull: standings[pid].skull, star: standings[pid].star };
     });
     arr.sort(function (a, b) { return b.total - a.total; });
     var h = '<div class="ranking"><h2>Koniec gry — ranking</h2>';
     arr.forEach(function (p, i) {
-      h += '<div class="rankrow"><span class="pos">' + (i + 1) + ". " + esc(p.name) + '</span><span class="pts">' + p.total + "</span></div>";
+      var marks = (p.skull ? '<span class="skull">☠</span>' : "") + (p.star ? '<span class="gstar">★</span>' : "");
+      h += '<div class="rankrow"><span class="pos">' + (i + 1) + ". " + marks + esc(p.name) + '</span><span class="pts">' + p.total + "</span></div>";
     });
     h += "</div>";
     return h;

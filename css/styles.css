@@ -78,6 +78,16 @@ table.card{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12px
 .win{background:var(--info-bg)} .win .fig{font-weight:600;color:var(--t-info)} .win .out{color:var(--t-info);font-size:13px}
 .pair td{background:#f0eef8}
 .kreska td{padding:0;height:0;border-left:none;border-right:none;border-top:3px solid var(--t2);background:transparent}
+.diffrow td{background:#fbf9f3}
+.diffrow .fig{font-weight:400;color:var(--t2)}
+.finalrow td{background:var(--info-bg)}
+.finalrow .fig{font-weight:600;color:var(--t-info)}
+.finalrow .out{color:var(--t-info);font-weight:700}
+.dd{font-weight:700}
+.ddpos{color:#1d7a3a}
+.ddneg{color:#c0392b}
+.skull{color:#c0392b;margin-right:2px}
+.gstar{color:#e6a700;margin-right:2px;font-weight:700}
 
 .grand{display:flex;align-items:baseline;gap:8px;margin-top:10px}
 .grand .val{font-size:22px;font-weight:600}

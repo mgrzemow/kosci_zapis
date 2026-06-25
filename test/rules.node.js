@@ -160,5 +160,27 @@ ok(R.isPipRow("strit") && R.isPipRow("malusie") && !R.isPipRow("j1") && !R.isPip
   eq(R.pipsFromValue(r, R.valueFromPips(r, 9)), 9, "round-trip oczka↔wartość: " + r);
 });
 
+/* ---- różnice między graczami + dublowanie ---- */
+ok(R.isDoubled(100, 50) && R.isDoubled(50, 100), "doubled: 100 vs 50 (proporcja ≥2)");
+ok(!R.isDoubled(100, 51), "nie doubled: 100 vs 51");
+ok(!R.isDoubled(50, 40), "nie doubled: 50 vs 40");
+ok(R.isDoubled(50, 0) && R.isDoubled(0, 50), "doubled: 50 vs 0");
+ok(!R.isDoubled(0, 0) && !R.isDoubled(50, 50), "nie doubled: równe / zera");
+(function () {
+  var bases = { A: { free: 100 }, B: { free: 50 }, C: { free: 40 } };
+  var st = R.gameStandings(bases, ["A", "B", "C"]);
+  eq(st.A.cols.free.diffs.B.value, 100, "A vs B w free: (100−50)×2 = 100 (doubled)");
+  ok(st.A.cols.free.diffs.B.doubled, "A vs B doubled");
+  eq(st.A.cols.free.diffs.C.value, 120, "A vs C: (100−40)×2 = 120");
+  eq(st.A.cols.free.final, 320, "A final free = 100 + 100 + 120 = 320");
+  eq(st.A.total, 320, "A total = 320");
+  eq(st.B.total, -40, "B total = 50 − 100 + 10 = −40");
+  eq(st.C.total, -90, "C total = 40 − 120 − 10 = −90");
+  ok(st.A.star && !st.A.skull, "A: gwiazdka (dubluje), bez czaszki");
+  ok(st.B.skull && !st.B.star, "B: czaszka (zdublowany przez A)");
+  ok(st.C.skull, "C: czaszka");
+})();
+ok(!R.gameStandings({ A: { free: 50 }, B: { free: 40 } }, ["A", "B"]).A.star, "50 vs 40: brak gwiazdki (nie doubled)");
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

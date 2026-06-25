@@ -193,6 +193,50 @@
   // Skreślenie pola: które wiersze trzeba skreślić razem (para „+”/„−” skreśla się wspólnie).
   function crossedRows(row) { return (row === "plus" || row === "minus") ? ["plus", "minus"] : [row]; }
 
+  // Dublowanie: proporcja wyników ≥ 2× (0 vs >0 też liczy się jako dublowanie).
+  function isDoubled(a, b) {
+    var hi = Math.max(a, b), lo = Math.min(a, b);
+    if (lo <= 0) return hi > 0;
+    return hi >= 2 * lo;
+  }
+  // Bazowe wyniki kolumn wszystkich graczy: { pid: { col: wynik } }
+  function columnBases(grids, weights, playerIds) {
+    var out = {};
+    for (var i = 0; i < playerIds.length; i++) {
+      var pid = playerIds[i]; out[pid] = {};
+      for (var c = 0; c < COLS.length; c++) {
+        out[pid][COLS[c]] = scoreColumn((grids && grids[pid]) || {}, COLS[c], weights ? weights[COLS[c]] : 0).wynik;
+      }
+    }
+    return out;
+  }
+  // Tabela końcowa: dla każdego gracza różnice do przeciwników (z dublowaniem),
+  // finał każdej kolumny, suma końcowa oraz flagi skull/star.
+  function gameStandings(allBases, playerIds) {
+    var out = {};
+    for (var i = 0; i < playerIds.length; i++) {
+      var pid = playerIds[i], cols = {}, total = 0, skull = false, star = false;
+      for (var c = 0; c < COLS.length; c++) {
+        var col = COLS[c];
+        var myBase = (allBases[pid] && allBases[pid][col]) || 0;
+        var diffs = {}, sumDiff = 0;
+        for (var j = 0; j < playerIds.length; j++) {
+          var opp = playerIds[j]; if (opp === pid) continue;
+          var ob = (allBases[opp] && allBases[opp][col]) || 0;
+          var dbl = isDoubled(myBase, ob);
+          var val = (myBase - ob) * (dbl ? 2 : 1);
+          diffs[opp] = { value: val, doubled: dbl };
+          sumDiff += val;
+          if (dbl) { if (myBase > ob) star = true; else if (ob > myBase) skull = true; }
+        }
+        cols[col] = { base: myBase, diffs: diffs, final: myBase + sumDiff };
+        total += myBase + sumDiff;
+      }
+      out[pid] = { cols: cols, total: total, skull: skull, star: star };
+    }
+    return out;
+  }
+
   window.Rules = {
     COLS: COLS, COL_LABELS: COL_LABELS, COL_HINT: COL_HINT,
     ROWS: ROWS, ROW_LABELS: ROW_LABELS, ROW_HINT: ROW_HINT,
@@ -202,6 +246,7 @@
     shuffleWeights: shuffleWeights, bonusSzkolka: bonusSzkolka,
     scoreColumn: scoreColumn, scoreCard: scoreCard,
     activeRows: activeRows, isActive: isActive,
-    floorFor: floorFor, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows
+    floorFor: floorFor, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows,
+    isDoubled: isDoubled, columnBases: columnBases, gameStandings: gameStandings
   };
 })();
