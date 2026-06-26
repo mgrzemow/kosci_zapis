@@ -169,22 +169,20 @@
     pingPrevBefore = before; pingPrevSig = sig;
   }
 
-  // Wykryj komórki zmienione od ostatniej aktualizacji (dowolny gracz) — do obwódki „ostatnio edytowane".
-  var gridsSnap = null, lastEditKeys = [];
+  // Komórka, w którą OSTATNIO wpisał poprzedni gracz (przed Tobą w kolejności) — podświetlana na MOJEJ karcie.
+  var gridsSnap = null, prevEditCell = null;
   function cellVal(grids, pid, col, row) { return grids[pid] && grids[pid][col] && grids[pid][col][row]; }
-  function detectEdits() {
+  function detectEdits(myPid) {
     var grids = curSession.grids || {};
-    if (gridsSnap !== null) {
-      var changed = [], seen = {}, p, ci, ri, col, row;
-      for (p in gridsSnap) seen[p] = 1;
-      for (p in grids) seen[p] = 1;
-      for (p in seen)
-        for (ci = 0; ci < R.COLS.length; ci++)
-          for (ri = 0; ri < R.ROWS.length; ri++) {
-            col = R.COLS[ci]; row = R.ROWS[ri];
-            if (cellVal(grids, p, col, row) !== cellVal(gridsSnap, p, col, row)) changed.push(p + "|" + col + "|" + row);
-          }
-      if (changed.length) lastEditKeys = changed;
+    var order = getOrder(curSession, Object.keys(curSession.players || {}));
+    var idx = order.indexOf(myPid);
+    var before = (idx >= 0 && order.length >= 2) ? order[(idx - 1 + order.length) % order.length] : null;
+    if (gridsSnap !== null && before) {
+      for (var ci = 0; ci < R.COLS.length; ci++)
+        for (var ri = 0; ri < R.ROWS.length; ri++) {
+          var col = R.COLS[ci], row = R.ROWS[ri];
+          if (cellVal(grids, before, col, row) !== cellVal(gridsSnap, before, col, row)) prevEditCell = { col: col, row: row };
+        }
     }
     gridsSnap = JSON.parse(JSON.stringify(grids));
   }
@@ -202,7 +200,7 @@
     if (unsubPres) { unsubPres(); unsubPres = null; }
     curSession = null; curPresence = {}; activeTab = null; claimed = false; errorMsg = null;
     pingPrevBefore = null; pingPrevSig = null;
-    gridsSnap = null; lastEditKeys = [];
+    gridsSnap = null; prevEditCell = null;
     var sid = parseHash();
     curSid = sid;
     if (!sid) { renderStart(); return; }
@@ -224,7 +222,7 @@
     if (!activeTab) activeTab = myPid;
     autoFinishIfDone(sid);
     maybePing(myPid);
-    detectEdits();
+    detectEdits(myPid);
     renderGame(sid, myPid);
   }
 
@@ -432,7 +430,7 @@
     R.COLS.forEach(function (c) {
       var v = (grid[c] || {})[row];
       var tip = cellOwners(grids, c, row);
-      var hot = lastEditKeys.indexOf(viewPid + "|" + c + "|" + row) >= 0;
+      var hot = prevEditCell && viewPid === myPid && prevEditCell.col === c && prevEditCell.row === row;
       h += "<td" + (hot ? ' class="lastedit"' : "") + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
     });
     return h + "</tr>";
