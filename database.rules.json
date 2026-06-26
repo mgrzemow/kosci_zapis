@@ -13,6 +13,9 @@
           "weights": {
             "$col": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" }
           },
+          "order": {
+            "$i": { ".validate": "newData.isString() && newData.val().length <= 8" }
+          },
           "$other": { ".validate": false }
         },
         "players": {

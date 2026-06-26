@@ -43,6 +43,49 @@
   function myPidFor(sid) { return localStorage.getItem("kosci_pid_" + sid); }
   function setMyPid(sid, pid) { localStorage.setItem("kosci_pid_" + sid, pid); }
 
+  var floorMode = (function () { try { return localStorage.getItem("kosci_floorMode") || "oczka"; } catch (e) { return "oczka"; } })();
+  var audioCtx = null, pingPrevBefore = null, pingPrevSig = null;
+  function initAudio() {
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; } }
+    if (audioCtx && audioCtx.state === "suspended") { try { audioCtx.resume(); } catch (e) {} }
+  }
+  function ping() {
+    initAudio(); if (!audioCtx) return;
+    try {
+      var t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine"; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t); o.stop(t + 0.3);
+    } catch (e) {}
+  }
+  // Kolejność graczy: meta.order (z domyślką = kolejność kluczy graczy).
+  function getOrder(session, playerIds) {
+    var o = (session && session.meta && session.meta.order) || [], res = [], i;
+    for (i = 0; i < o.length; i++) if (playerIds.indexOf(o[i]) >= 0 && res.indexOf(o[i]) < 0) res.push(o[i]);
+    for (i = 0; i < playerIds.length; i++) if (res.indexOf(playerIds[i]) < 0) res.push(playerIds[i]);
+    return res;
+  }
+  function moveOrder(sid, order, pid, dir) {
+    var i = order.indexOf(pid); if (i < 0) return;
+    var j = dir === "up" ? i - 1 : i + 1; if (j < 0 || j >= order.length) return;
+    var no = order.slice(), t = no[i]; no[i] = no[j]; no[j] = t;
+    DB.setOrder(sid, no);
+  }
+  // Ping u "kolejnego gracza": gdy gracz przede mną w kolejności zmieni swój zapis.
+  function maybePing(myPid) {
+    var finished = curSession.meta && curSession.meta.status === "finished";
+    var grids = curSession.grids || {}, order = getOrder(curSession, Object.keys(curSession.players || {}));
+    var idx = order.indexOf(myPid);
+    if (finished || idx < 0 || order.length < 2) { pingPrevBefore = null; pingPrevSig = null; return; }
+    var before = order[(idx - 1 + order.length) % order.length];
+    var sig = JSON.stringify(grids[before] || {});
+    if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) ping();
+    pingPrevBefore = before; pingPrevSig = sig;
+  }
+
   var curSid = null, curSession = null, curPresence = {}, activeTab = null;
   var unsub = null, unsubPres = null, claimed = false, errorMsg = null, errTimer = null;
 
@@ -55,6 +98,7 @@
     if (unsub) { unsub(); unsub = null; }
     if (unsubPres) { unsubPres(); unsubPres = null; }
     curSession = null; curPresence = {}; activeTab = null; claimed = false; errorMsg = null;
+    pingPrevBefore = null; pingPrevSig = null;
     var sid = parseHash();
     curSid = sid;
     if (!sid) { renderStart(); return; }
@@ -75,6 +119,7 @@
     if (!claimed) { DB.claimPresence(sid, myPid, clientId()); claimed = true; }
     if (!activeTab) activeTab = myPid;
     autoFinishIfDone(sid);
+    maybePing(myPid);
     renderGame(sid, myPid);
   }
 
@@ -171,8 +216,9 @@
 
     var maxT = -Infinity;
     playerIds.forEach(function (pid) { if (standings[pid].total > maxT) maxT = standings[pid].total; });
+    var turnOrder = getOrder(curSession, playerIds);
     h += '<div class="tabs">';
-    var order = [myPid].concat(playerIds.filter(function (p) { return p !== myPid; }));
+    var order = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
     order.forEach(function (pid) {
       var me = pid === myPid, st = standings[pid];
       var done = R.cardComplete(grids[pid] || {});
@@ -191,6 +237,18 @@
     h += '<div class="legend">Wpisz liczbę lub <b>x</b> (skreślenie). „≥ X” = próg od innych graczy. ' +
       'Kolumny: 1. wolne · ↓ dół · ↑ góra · ↕ harmonia · 2rz drugi rzut · A anons. Przytrzymaj nagłówek lub wiersz, by zobaczyć pełny opis.</div>';
 
+    h += '<div class="opts"><div class="optrow"><span>Próg podpowiedzi:</span>' +
+      '<span class="seg2" id="floorSeg">' +
+      '<button data-fm="oczka"' + (floorMode === "oczka" ? ' class="on"' : "") + ">oczka</button>" +
+      '<button data-fm="punkty"' + (floorMode === "punkty" ? ' class="on"' : "") + ">punkty</button></span></div>";
+    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span></div><div class="orderlist">';
+    turnOrder.forEach(function (pid, i) {
+      h += '<div class="orow' + (pid === myPid ? " me" : "") + '"><span>' + (i + 1) + ". " + esc(players[pid].name) + "</span><span>" +
+        '<button class="obtn" data-mv="up" data-pid="' + pid + '"' + (i === 0 ? " disabled" : "") + ">▲</button>" +
+        '<button class="obtn" data-mv="down" data-pid="' + pid + '"' + (i === turnOrder.length - 1 ? " disabled" : "") + ">▼</button></span></div>";
+    });
+    h += "</div></div>";
+
     $app().innerHTML = h;
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
     document.getElementById("changeBtn").onclick = function () {
@@ -203,6 +261,10 @@
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
     bindCardInputs(sid, myPid);
+    var fseg = document.querySelectorAll("#floorSeg button");
+    for (var fi = 0; fi < fseg.length; fi++) fseg[fi].onclick = function () { floorMode = this.getAttribute("data-fm"); try { localStorage.setItem("kosci_floorMode", floorMode); } catch (e) {} renderGame(sid, myPid); };
+    var obtns = document.querySelectorAll(".obtn");
+    for (var oi = 0; oi < obtns.length; oi++) obtns[oi].onclick = function () { moveOrder(sid, turnOrder, this.getAttribute("data-pid"), this.getAttribute("data-mv")); };
     restoreFocus(focus);
   }
 
@@ -304,7 +366,8 @@
   }
   function floorPlaceholder(row, fl) {
     if (fl <= 0) return "";
-    if (row === "malusie") return "≤ " + R.pipsFromValue("malusie", fl);   // mniej oczek = więcej pkt
+    if (floorMode === "punkty") return "≥ " + fl;                          // próg w punktach (z bonusem)
+    if (row === "malusie") return "≤ " + R.pipsFromValue("malusie", fl);   // oczka: mniej = więcej pkt
     if (R.BONUS[row] != null) return "≥ " + R.pipsFromValue(row, fl);
     return "≥ " + fl;
   }
@@ -440,6 +503,7 @@
     p.style.top = top + "px";
   }
   document.addEventListener("click", function (e) {
+    initAudio();
     var p = document.getElementById("cellpop");
     if (p && p.contains(e.target)) return;
     if (e.target.tagName === "INPUT") return;          // input — dymek obsługuje focus/blur

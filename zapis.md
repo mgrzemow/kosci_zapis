@@ -62,7 +62,7 @@ Symbole przy imieniu **przeciwnika** (zakładki i ranking, z perspektywy `myPid`
 Liczone funkcją `Rules.pairMarks` ze `standings[myPid]` (kolumny z `doubled` + znak `value`); własna zakładka nie ma symboli.
 
 ## Próg „≥ X" między graczami
-W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek).
+W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek). Jednostka podpowiedzi jest przełączalna **per gracz** (na dole ekranu): **oczka** (domyślnie) albo **punkty** (wartość z bonusem pola) — wtedy dla wszystkich pól „≥ X" w punktach.
 
 ## Reguły walidacji (`Rules.validateCell`)
 1. **`X`** (skreślenie) — zawsze dozwolone (także poniżej progu).

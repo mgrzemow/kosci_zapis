@@ -38,7 +38,7 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 ## Model danych (Firebase Realtime Database)
 ```
 sessions/{klucz}
-  meta:     { status: "active"|"finished", createdAt, wagi: { <kolumna>: 8..18 } }
+  meta:     { status: "active"|"finished", createdAt, wagi: { <kolumna>: 8..18 }, order: [<pid>,…] }
   players:  { <pid>: { name } }            # pid = "p0","p1",… nadane przy tworzeniu
   grids:    { <pid>: { <kolumna>: { <wiersz>: wartość } } }   # wartość: liczba | "X"
   presence: { <pid>: <clientId> }          # obecność (ostrzeżenie o zajętym imieniu)
@@ -51,7 +51,7 @@ sessions/{klucz}
 ## Ekrany i przepływ
 1. **Nowa gra** (host) — dodaje imiona graczy (domyślnie: Żaneta, Anna, Piotr, Michał), klika „Utwórz grę". Losują się wagi 6 kolumn (wspólne dla całej gry), powstaje jeden link.
 2. **Wejście przez link** — gracz wybiera swoje imię z listy → widzi swoją kartę.
-3. **Gra** — zakładki: własna (imię pogrubione, pierwsza) edytowalna, pozostałe tylko do podglądu. Przy każdym imieniu **ostateczny wynik** (prowadzący na zielono); przy imionach przeciwników symbole pojedynków (**★** gdy Ty dublujesz, **☠** gdy on dubluje Ciebie). Wszystko aktualizuje się na żywo.
+3. **Gra** — zakładki: własna (imię pogrubione, pierwsza) edytowalna, pozostałe tylko do podglądu. Przy każdym imieniu **ostateczny wynik** (prowadzący na zielono); przy imionach przeciwników symbole pojedynków (**★** gdy Ty dublujesz, **☠** gdy on dubluje Ciebie). Wszystko aktualizuje się na żywo. Na dole ekranu: przełącznik jednostki podpowiedzi progu (**oczka/punkty**, per urządzenie), **edycja kolejności graczy** oraz **ping** dźwiękowy u następnego gracza po cudzym zapisie.
 4. **Koniec** — gdy u wszystkich graczy każde pole jest wypełnione lub skreślone, pojawia się **ranking** u każdego.
 
 ## Tożsamość, reconnect, zmiana gracza
