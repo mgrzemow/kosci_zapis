@@ -103,7 +103,11 @@
     } catch (e) { return false; }
   }
   function doneVerb(name) { return /a\s*$/i.test(name || "") ? "skończyła" : "skończył"; }   // odmiana wg końcówki imienia
-  function isZaneta(name) { return (name || "").trim().toLowerCase() === "żaneta"; }
+  function isZaneta(name) {
+    var t = (name || "").trim().toLowerCase();
+    try { t = t.normalize("NFD").replace(/[̀-ͯ]/g, ""); } catch (e) {}   // bez diakrytyków: „ż"→„z" itd.
+    return t === "zaneta";
+  }
   function dimNom(name) { return isZaneta(name) ? "Żanetka" : name; }                        // forma „kto skończył" (mianownik)
   function dimVoc(name) { return isZaneta(name) ? "Żanetko" : name; }                        // forma „Twoja kolej, …" (wołacz)
   function announceTurn(myName, prevName) {
