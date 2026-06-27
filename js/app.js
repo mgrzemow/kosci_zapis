@@ -438,12 +438,18 @@
           '<span class="dp-val">' + m + ' oczek → ' + mv + ' pkt</span></button>';
       }
     } else if (row === "plus" || row === "minus") {
-      var pmMin = row === "plus" ? 21 : 20, pmMax = row === "plus" ? 30 : 29;
-      for (var pm = pmMin; pm <= pmMax; pm++) {
-        var dis = fl > 0 && pm < fl;
-        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pm;
-        h += '<button data-dv="' + pm + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="dp-dice">' + pm + '</span></button>';
+      var partner = row === "plus" ? "minus" : "plus";
+      var pv = grid[col] && grid[col][partner];
+      if (R.isCross(pv)) {
+        h += '<div class="fg-label">partner skreślony — tylko X</div>';
+      } else {
+        var pmMin = row === "plus" ? 21 : 20, pmMax = row === "plus" ? 30 : 29;
+        for (var pm = pmMin; pm <= pmMax; pm++) {
+          var dis = fl > 0 && pm < fl;
+          var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pm;
+          h += '<button data-dv="' + pm + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
+            '<span class="dp-dice">' + pm + '</span></button>';
+        }
       }
     }
     h += '<button data-dv="X" class="dp-x">X</button>';
@@ -920,24 +926,19 @@
     var grids = curSession.grids || {};
     if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
     if (/^x$/i.test(raw)) {
-      var rows = R.crossedRows(row);
-      if (rows.length > 1) { var o = {}; rows.forEach(function (rr) { o[rr] = "X"; }); DB.setCells(sid, myPid, col, o); }
-      else DB.setCell(sid, myPid, col, row, "X");
+      DB.setCell(sid, myPid, col, row, "X");
       return;
+    }
+    if (row === "plus" || row === "minus") {
+      var partner = row === "plus" ? "minus" : "plus";
+      var pv = grids[myPid] && grids[myPid][col] && grids[myPid][col][partner];
+      if (R.isCross(pv)) { showError("partner skreślony — tu też tylko X"); return false; }
     }
     var n = Number(raw.replace(",", "."));
     if (!isFinite(n)) { showError("niepoprawna liczba"); return false; }
     var val = R.isPipRow(row) ? R.valueFromPips(row, n) : n;   // wpisywane oczka → wartość końcowa
     var res = R.validateCell(grids, myPid, col, row, val);
     if (!res.ok) { showError(res.reason); return false; }
-    if (row === "plus" || row === "minus") {
-      var partner = row === "plus" ? "minus" : "plus";
-      var pv = grids[myPid] && grids[myPid][col] && grids[myPid][col][partner];
-      if (R.isCross(pv)) {
-        var obj = {}; obj[row] = val; obj[partner] = null;   // odkreślenie pary
-        DB.setCells(sid, myPid, col, obj); return;
-      }
-    }
     DB.setCell(sid, myPid, col, row, val);
   }
 
