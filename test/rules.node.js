@@ -1,9 +1,9 @@
 /* Testy silnika reguł (Node, bez przeglądarki).
    Pokrywają: strukturę, wagi, premie, punktację (oczka↔wartość), premię +200,
    wynik kolumny (× waga ÷ 10), kolejność kolumn, próg ≥X, walidację
-   (max/min, wielokrotności, strit/poker/kareta/malusie, +/-), kompletność karty,
-   skreślanie pary +/−, oraz pojedynki head-to-head (columnBases, dublowanie,
-   różnice, finał, suma, pairMarks → liczba ☠/★). */
+   (max/min, wielokrotności, strit/poker/kareta/malusie, +/-, dozwolone zakresy),
+   kompletność karty, powiązanie pary +/−, oraz pojedynki head-to-head
+   (columnBases, dublowanie, różnice, finał, suma, pairMarks → liczba ☠/★). */
 const fs = require("fs");
 global.window = {};
 eval(fs.readFileSync(__dirname + "/../js/rules.js", "utf8"));
@@ -96,7 +96,7 @@ eq(R.floorFor(grids, "B", "free", "full"), 30, "floor pomija własną wartość"
 eq(R.floorFor({ A: { free: { full: "X" } }, B: { free: { full: 25 } } }, "C", "free", "full"), 25, "floor: skreślone u innych nie liczy");
 eq(R.floorFor({ A: { free: { full: "X" } } }, "C", "free", "full"), 0, "floor: same skreślenia → 0");
 
-/* ---- efektywny próg: sprzężenie „−” → „+” (floorEff) ---- */
+/* ---- efektywny próg: sprzężenie "−" → "+" (floorEff) ---- */
 eq(R.floorEff(grids, "C", "free", "full"), 40, "floorEff = floorFor dla zwykłych pól");
 var gMinus = { A: { free: { minus: 25 } }, B: {}, C: {} };
 eq(R.floorEff(gMinus, "C", "free", "plus"), 26, "floorEff(+): cudze − = 25 → + ≥ 26");
@@ -119,10 +119,10 @@ ok(R.validateCell({ A: { free: { full: 30 } }, B: {} }, "B", "free", "full", 30)
 ok(R.validateCell({ A: { free: { full: 30 } }, B: {} }, "B", "free", "full", "X").ok, "X dozwolone nawet poniżej floor");
 ok(!R.validateCell({ A: {} }, "A", "free", "plus", 19).ok, "plus < 20 → błąd");
 ok(R.validateCell({ A: {} }, "A", "free", "plus", 20).ok, "plus = 20 OK");
-ok(!R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 24).ok, "„+” musi być > „−”");
-ok(R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 30).ok, "„+” 30 > „−” 25 OK");
-ok(!R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 25).ok, "„−” musi być < „+”");
-ok(R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 22).ok, "„−” 22 < „+” 25 OK");
+ok(!R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 24).ok, "plus musi byc > minus");
+ok(R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 30).ok, "plus 30 > minus 25 OK");
+ok(!R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 25).ok, "minus musi byc < plus");
+ok(R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 22).ok, "minus 22 < plus 25 OK");
 
 /* ---- minimalne wartości i dozwolone zbiory ---- */
 ok(!R.validateCell({}, "A", "free", "full", 25.5).ok, "wartość niecałkowita → błąd");
@@ -144,6 +144,16 @@ ok(R.validateCell({}, "A", "free", "malusie", 75).ok && R.validateCell({}, "A", 
 ok(!R.validateCell({}, "A", "free", "malusie", 55).ok, "malusie 9 oczek (55) → błąd (skreśl)");
 ok(!R.validateCell({}, "A", "free", "malusie", 76).ok, "malusie powyżej 75 → błąd");
 
+/* ---- dozwolone zakresy +/− ---- */
+ok(R.validateCell({}, "A", "free", "minus", 20).ok, "minus 20 OK");
+ok(R.validateCell({}, "A", "free", "minus", 29).ok, "minus 29 OK");
+ok(R.validateCell({}, "A", "free", "minus", 30).ok, "minus 30 OK (max)");
+ok(!R.validateCell({}, "A", "free", "minus", 31).ok, "minus 31 → powyżej max");
+ok(R.validateCell({}, "A", "free", "plus", 21).ok, "plus 21 OK");
+ok(R.validateCell({}, "A", "free", "plus", 30).ok, "plus 30 OK (max)");
+ok(!R.validateCell({}, "A", "free", "plus", 31).ok, "plus 31 → powyżej max");
+ok(R.validateCell({ A: { free: { minus: "X" } } }, "A", "free", "plus", "X").ok, "plus X dozwolone gdy minus skreślony");
+
 /* ---- kompletność karty ---- */
 ok(!R.cardComplete(emptyGrid()), "pusta karta → niekompletna");
 ok(!R.cardComplete({ free: { j1: 5 } }), "częściowa karta → niekompletna");
@@ -152,9 +162,11 @@ var fgX = fullGrid(); fgX.free.j1 = "X";
 ok(R.cardComplete(fgX), "pełna karta ze skreśleniem → kompletna");
 
 /* ---- skreślanie pary +/- ---- */
-ok(R.crossedRows("plus").length === 2 && R.crossedRows("plus").indexOf("minus") >= 0, "skreślenie „+” skreśla też „−”");
-ok(R.crossedRows("minus").indexOf("plus") >= 0, "skreślenie „−” skreśla też „+”");
-eq(R.crossedRows("strit").length, 1, "skreślenie figury nie dotyka innych pól");
+ok(R.crossedRows("plus").length === 2 && R.crossedRows("plus").indexOf("minus") >= 0, "crossedRows(+) zwraca pare [+,-]");
+ok(R.crossedRows("minus").indexOf("plus") >= 0, "crossedRows(-) zwraca pare [-,+]");
+eq(R.crossedRows("strit").length, 1, "crossedRows figury: brak powiazania");
+/* Uwaga: app.js NIE auto-skresla partnera - gracz skresla go osobno.
+   Gdy partner skreslony, drugie pole dopuszcza wylacznie X (logika w app.js). */
 
 /* ---- wpisywanie oczek + bonus ---- */
 eq(R.valueFromPips("strit", 15), 45, "strit: 15 oczek → 45");

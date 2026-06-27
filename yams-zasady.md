@@ -2,11 +2,12 @@
 
 > Reguły **gry**: jak się gra i jak gra ma się do aplikacji oraz do zapisu punktów.
 > Punktacja, walidacja, pojedynki: [zapis.md](zapis.md). Aplikacja, model danych, testy: [opis.md](opis.md).
-> Aplikacja: https://mgrzemow.github.io/kosci_zapis/ · Status: aktualne 2026-06-25.
+> Aplikacja: https://mgrzemow.github.io/kosci_zapis/ · Status: aktualne 2026-06-27.
 
 ## Materiał i przebieg
 - **5 kości** sześciennych. **Każdy gracz ma własną kartę**; karty są zależne (próg „≥ X" — patrz zapis.md).
-- Tura: **3 rzuty** (pierwszy wszystkimi, w 2. i 3. odkładasz wybrane i przerzucasz resztę). Po turze **wpisujesz wynik do jednego pola** (dotykowym numpadem na dole ekranu) albo **skreślasz** pole (przycisk X na numpadzie).
+- Tura: **3 rzuty** (pierwszy wszystkimi, w 2. i 3. odkładasz wybrane i przerzucasz resztę). Po turze **wpisujesz wynik do jednego pola** dedykowanym pickerem (panel na dole ekranu z dużymi przyciskami i ikonkami kości ⚀⚁⚂⚃⚄⚅) albo **skreślasz** pole (przycisk X). Każdy wiersz ma własny picker dopasowany do dozwolonych wartości.
+- **Kolejka:** nad zakładkami graczy pasek **🎲 Kolej: [imię]** — zsynchronizowany między telefonami. Tap na pasek przesuwa na następnego gracza. Próba wpisu poza swoją kolejką → komunikat błędu. Aplikacja wykrywa nierówną liczbę wpisów (różnica ≥ 2) i wyświetla ostrzeżenie.
 - **Koniec gry:** gdy u wszystkich każde pole jest wypełnione lub skreślone → **ranking** (ostateczne wyniki malejąco) u każdego.
 
 ## Kolumny (6) i kolejność wpisywania
@@ -38,6 +39,7 @@ Na start każda kolumna dostaje **losowo jedną z wag: 8, 10, 12, 14, 16, 18** (
 - **Aplikacja pilnuje:** kolejności w kolumnach — odblokowuje tylko legalne pola (Dół z góry, Góra z dołu, Harmonia od środka; Wolne/Anons/Drugi rzut — dowolnie); progu „≥ X" na żywo; dozwolonych wartości, premii i wyniku (patrz zapis.md); wykrycia końca gry.
 - **Zostawia graczom** (apka nie widzi kości): **liczbę rzutów** i **deklarację „Anons"** — dlatego kolumny **Anons** i **Drugi rzut** mają w aplikacji dowolną kolejność.
 - **Skreślanie przy stole:** w kolumnach z kolejnością skreślasz tylko bieżące pole; w **Anonsie** — po zapowiedzi; wyjątek **Drugi rzut** — można skreślić nawet po 3. rzucie. (Mechanika „X = 0" — zapis.md.)
+- **Para +/−:** skreślenie jednego **nie skreśla** automatycznie drugiego — gracz musi osobno skreślić partnera w swojej turze (nie traci ruchu). Gdy partner jest skreślony, drugie pole dopuszcza tylko X.
 
 ## Jak ma się do zapisu
 Wpisujesz **oczka z kości** — pole samo przelicza je na punkty. Wartości figur, premie, wynik kolumny (× waga ÷ 10), **pojedynki head‑to‑head** (różnice, dublowanie, ☠/★) oraz walidacja są w **[zapis.md](zapis.md)**.

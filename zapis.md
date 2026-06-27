@@ -11,7 +11,17 @@
 W sumach `X` oraz puste liczą się jako **0**.
 
 ## Co wpisujesz: OCZKA → wartość
-W polach **strit / full / kareta / poker / malusie** wpisujesz **oczka z kości**, a pole pokazuje wartość końcową (`Rules.isPipRow`, `Rules.valueFromPips`, `Rules.pipsFromValue`). Wpisywanie odbywa się przez **dotykowy numpad** (panel na dole ekranu z dużymi przyciskami 0–9, X, ←, ✓ OK) zamiast klawiatury systemowej — wygodniejszy na telefonie. Numpad pokazuje nazwę pola, próg i wpisy innych graczy. Po zatwierdzeniu pole pokazuje wartość końcową.
+W polach **strit / full / kareta / poker / malusie** wpisujesz **oczka z kości**, a pole pokazuje wartość końcową (`Rules.isPipRow`, `Rules.valueFromPips`, `Rules.pipsFromValue`). Wpisywanie odbywa się przez **dedykowane pickery** (panele na dole ekranu) zamiast klawiatury systemowej — każdy wiersz ma własny picker dopasowany do dozwolonych wartości:
+- **Szkółka (j1–j6):** 6 przycisków (0–5 kości danego nominału) z ikonkami ⚀⚁⚂⚃⚄⚅
+- **Full:** dwie kolumny obok siebie — „trójka" (3 ikonki, 1–6) i „para" (2 ikonki, 1–6); tap po jednym z każdej → auto-commit
+- **Kareta:** 6 przycisków (4 ikonki danego nominału)
+- **Poker:** 6 przycisków (5 ikonek danego nominału)
+- **Strit:** 2 przyciski — mały (⚀⚁⚂⚃⚄) i duży (⚁⚂⚃⚄⚅)
+- **Malusie:** 4 przyciski (5–8 oczek → 75–60 pkt)
+- **+/−:** przyciski 20–29 (minus) lub 21–30 (plus)
+- Każdy picker ma przycisk **X** (skreślenie) i **🗑** (wyczyść wypełnione pole)
+
+Picker pokazuje nazwę pola, próg i wpisy innych graczy. Wartości poniżej progu są wyszarzone. Po zatwierdzeniu pole pokazuje wartość końcową.
 
 | Pole | Wpisujesz (oczka) | Pole pokazuje | Przelicznik |
 |---|---|---|---|
@@ -34,7 +44,7 @@ Pola **1–6**, **+**, **−** wpisuje się wprost (bez przelicznika). **Wewnęt
 | `malusie` | 100 − 5 × oczka (tylko 5–8 oczek) | 75 |
 | `poker` | suma 5 kości + 70 | 100 |
 
-Maksima w `Rules.MAXES`. Para **+/−** jest powiązana: skreślenie jednego **zeruje oba** (`Rules.crossedRows`); odkreślenie jednego czyści drugie (logika w `app.js`).
+Maksima w `Rules.MAXES`. Para **+/−** jest powiązana: skreślenie jednego **nie skreśla** automatycznie drugiego — gracz musi osobno skreślić partnera w następnej turze. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X (blokada liczbowego wpisu w `app.js`).
 
 ## Premie
 - **Premia za szkółkę** (osobno w każdej kolumnie, od sumy nominałów 1–6; `Rules.bonusSzkolka`): ≥ 60 → **+30**, ≥ 70 → **+50**, ≥ 80 → **+100**.
@@ -76,5 +86,5 @@ Pola oczkowe: wpisane **oczka** są najpierw przeliczane na wartość końcową,
 
 ## Skreślanie
 - Wpisanie `x`/`X` → pole pokazuje „X" i liczy się jako **0**.
-- Para „+"/„−" skreśla się wspólnie; skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
+- Para „+"/„−": skreślenie jednego **nie skreśla** automatycznie drugiego. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X — gracz musi osobno je skreślić w następnej turze (nie traci ruchu). Skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
 - *Kiedy wolno skreślić* (kolejność w kolumnie, Anons po zapowiedzi, Drugi rzut nawet po 3. rzucie) to reguła gry — [yams-zasady.md](yams-zasady.md).
