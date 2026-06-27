@@ -197,6 +197,90 @@
     gridsSnap = JSON.parse(JSON.stringify(grids));
   }
 
+  // ── Numpad overlay (tryb pijacki) ──
+  var npState = null;
+  function ensureNumpad() {
+    var el = document.getElementById("numpad");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "numpad";
+    el.innerHTML = '<div class="np-head"><span class="np-field" id="npField"></span><span class="np-hint" id="npHint"></span>' +
+      '<button class="np-close" data-np="close">×</button></div>' +
+      '<div class="np-others" id="npOthers"></div>' +
+      '<div class="np-display" id="npDisp">—</div>' +
+      '<div class="np-keys">' +
+      '<button data-np="1">1</button><button data-np="2">2</button><button data-np="3">3</button>' +
+      '<button data-np="4">4</button><button data-np="5">5</button><button data-np="6">6</button>' +
+      '<button data-np="7">7</button><button data-np="8">8</button><button data-np="9">9</button>' +
+      '<button data-np="X" class="np-x">X</button><button data-np="0">0</button><button data-np="back" class="np-back">←</button></div>' +
+      '<button class="np-ok" data-np="ok">✓ OK</button>';
+    el.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-np]");
+      if (btn) { e.preventDefault(); e.stopPropagation(); npKey(btn.getAttribute("data-np")); }
+    });
+    document.body.appendChild(el);
+    return el;
+  }
+  function openNumpad(col, row) {
+    var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var grid = grids[pid] || {};
+    var v = (grid[col] || {})[row], buf = "";
+    if (R.isCross(v)) buf = "X";
+    else if (R.isFilled(v)) buf = String(R.isPipRow(row) ? R.pipsFromValue(row, v) : v);
+    npState = {col: col, row: row, buf: buf};
+    var el = ensureNumpad();
+    document.getElementById("npField").textContent = (ROW_SHORT[row] || row) + " · " + (COL_SYM[col] ? COL_SYM[col] + " " : "") + (COL_FULL[col] || col);
+    var fl = R.floorEff(grids, pid, col, row);
+    document.getElementById("npHint").textContent = floorPlaceholder(row, fl);
+    var others = cellOwnersOthers(grids, col, row, pid);
+    var oEl = document.getElementById("npOthers");
+    oEl.textContent = others; oEl.style.display = others ? "block" : "none";
+    updateNpDisplay();
+    el.classList.add("show");
+    highlightNpCell();
+    document.body.style.paddingBottom = (el.offsetHeight + 10) + "px";
+    var inp = document.querySelector('#cardArea input.cinp[data-col="' + col + '"][data-row="' + row + '"]');
+    if (inp) {
+      var rect = inp.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - (el.offsetHeight || 300) - 20)
+        inp.scrollIntoView({block: "center", behavior: "smooth"});
+    }
+  }
+  function closeNumpad() {
+    npState = null;
+    var el = document.getElementById("numpad");
+    if (el) el.classList.remove("show");
+    var c = document.querySelector("td.npactive");
+    if (c) c.classList.remove("npactive");
+    document.body.style.paddingBottom = "";
+  }
+  function highlightNpCell() {
+    var old = document.querySelector("td.npactive");
+    if (old) old.classList.remove("npactive");
+    if (!npState) return;
+    var inp = document.querySelector('#cardArea input.cinp[data-col="' + npState.col + '"][data-row="' + npState.row + '"]');
+    if (inp) { var td = inp.closest("td"); if (td) td.classList.add("npactive"); }
+  }
+  function npKey(key) {
+    if (!npState) return;
+    if (key === "close") { closeNumpad(); return; }
+    if (key === "back") { npState.buf = npState.buf.slice(0, -1); updateNpDisplay(); return; }
+    if (key === "X") { npState.buf = "X"; updateNpDisplay(); return; }
+    if (key === "ok") {
+      var fake = {value: npState.buf, dataset: {col: npState.col, row: npState.row}};
+      var ok = commit(curSid, myPidFor(curSid), fake);
+      if (ok !== false) closeNumpad();
+      return;
+    }
+    if (npState.buf === "X") npState.buf = "";
+    if (npState.buf.length < 3) npState.buf += key;
+    updateNpDisplay();
+  }
+  function updateNpDisplay() {
+    var d = document.getElementById("npDisp");
+    if (d) d.textContent = npState && npState.buf ? npState.buf : "—";
+  }
+
   var curSid = null, curSession = null, curPresence = {}, activeTab = null;
   var unsub = null, unsubPres = null, claimed = false, errorMsg = null, errTimer = null;
 
@@ -206,6 +290,7 @@
   }
 
   function route() {
+    closeNumpad();
     if (unsub) { unsub(); unsub = null; }
     if (unsubPres) { unsubPres(); unsubPres = null; }
     curSession = null; curPresence = {}; activeTab = null; claimed = false; errorMsg = null;
@@ -380,7 +465,7 @@
       onSession();
     };
     var tabs = document.querySelectorAll(".tab");
-    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
+    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { closeNumpad(); activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
     bindCardInputs(sid, myPid);
     var thseg = document.querySelectorAll("#themeSeg button");
     for (var thi = 0; thi < thseg.length; thi++) thseg[thi].onclick = function () { theme = this.getAttribute("data-th"); try { localStorage.setItem("kosci_theme", theme); } catch (e) {} applyTheme(); renderGame(sid, myPid); };
@@ -487,11 +572,11 @@
     }
     if (R.isFilled(v)) {
       var cross = R.isCross(v);
-      return '<input class="cinp' + (cross ? " crossed" : "") + '" data-col="' + col + '" data-row="' + row + '" value="' + (cross ? "X" : esc(v)) + '">';
+      return '<input class="cinp' + (cross ? " crossed" : "") + '" readonly data-col="' + col + '" data-row="' + row + '" value="' + (cross ? "X" : esc(v)) + '">';
     }
     if (R.isActive(grid, col, row)) {
       var ph = floorPlaceholder(row, R.floorEff(grids, myPid, col, row));
-      return '<input class="cinp" data-col="' + col + '" data-row="' + row + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">";
+      return '<input class="cinp" readonly data-col="' + col + '" data-row="' + row + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">";
     }
     var lf = floorPlaceholder(row, R.floorEff(grids, myPid, col, row));   // próg widoczny też w polach jeszcze zablokowanych
     return '<span class="locked">' + (lf || "·") + "</span>";
@@ -507,15 +592,9 @@
   function bindCardInputs(sid, myPid) {
     var ins = document.querySelectorAll("#cardArea input.cinp");
     for (var i = 0; i < ins.length; i++) {
-      ins[i].addEventListener("change", function () { commit(sid, myPid, this); });
-      ins[i].addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); this.blur(); } });
-      ins[i].addEventListener("focus", function () {
-        toPipsDisplay(this);                                  // w edycji pokazujemy oczka
-        var txt = cellOwnersOthers(curSession.grids || {}, this.dataset.col, this.dataset.row, myPid);
-        if (txt) showPopover(this, txt, true); else hidePopover();
-      });
-      ins[i].addEventListener("blur", function () { hidePopover(); toValueDisplay(this); });
+      ins[i].addEventListener("click", function () { openNumpad(this.dataset.col, this.dataset.row); });
     }
+    highlightNpCell();
   }
   function toPipsDisplay(input) {
     var row = input.dataset.row;
@@ -544,10 +623,10 @@
       return;
     }
     var n = Number(raw.replace(",", "."));
-    if (!isFinite(n)) { showError("niepoprawna liczba"); return; }
+    if (!isFinite(n)) { showError("niepoprawna liczba"); return false; }
     var val = R.isPipRow(row) ? R.valueFromPips(row, n) : n;   // wpisywane oczka → wartość końcowa
     var res = R.validateCell(grids, myPid, col, row, val);
-    if (!res.ok) { showError(res.reason); return; }
+    if (!res.ok) { showError(res.reason); return false; }
     if (row === "plus" || row === "minus") {
       var partner = row === "plus" ? "minus" : "plus";
       var pv = grids[myPid] && grids[myPid][col] && grids[myPid][col][partner];
@@ -636,9 +715,11 @@
   }
   document.addEventListener("click", function (e) {
     initAudio();
+    var npEl = document.getElementById("numpad");
+    if (npState && npEl && !npEl.contains(e.target) && !(e.target.classList && e.target.classList.contains("cinp"))) closeNumpad();
     var p = document.getElementById("cellpop");
     if (p && p.contains(e.target)) return;
-    if (e.target.tagName === "INPUT") return;          // input — dymek obsługuje focus/blur
+    if (e.target.tagName === "INPUT") return;
     hidePopover();
     var hit = e.target.closest && e.target.closest("#cardArea [title]");
     if (hit) { var t = hit.getAttribute("title"); if (t) showPopover(hit, t); }

@@ -6,7 +6,7 @@
 
 ## Materiał i przebieg
 - **5 kości** sześciennych. **Każdy gracz ma własną kartę**; karty są zależne (próg „≥ X" — patrz zapis.md).
-- Tura: **3 rzuty** (pierwszy wszystkimi, w 2. i 3. odkładasz wybrane i przerzucasz resztę). Po turze **wpisujesz wynik do jednego pola** albo **skreślasz** pole.
+- Tura: **3 rzuty** (pierwszy wszystkimi, w 2. i 3. odkładasz wybrane i przerzucasz resztę). Po turze **wpisujesz wynik do jednego pola** (dotykowym numpadem na dole ekranu) albo **skreślasz** pole (przycisk X na numpadzie).
 - **Koniec gry:** gdy u wszystkich każde pole jest wypełnione lub skreślone → **ranking** (ostateczne wyniki malejąco) u każdego.
 
 ## Kolumny (6) i kolejność wpisywania

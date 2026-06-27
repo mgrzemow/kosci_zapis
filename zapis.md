@@ -11,7 +11,7 @@
 W sumach `X` oraz puste liczą się jako **0**.
 
 ## Co wpisujesz: OCZKA → wartość
-W polach **strit / full / kareta / poker / malusie** wpisujesz **oczka z kości**, a pole pokazuje wartość końcową (`Rules.isPipRow`, `Rules.valueFromPips`, `Rules.pipsFromValue`). Po wyjściu z pola widać wartość końcową; po wejściu w edycję pole wraca do oczek; dymki (wyniki innych) pokazują oczka.
+W polach **strit / full / kareta / poker / malusie** wpisujesz **oczka z kości**, a pole pokazuje wartość końcową (`Rules.isPipRow`, `Rules.valueFromPips`, `Rules.pipsFromValue`). Wpisywanie odbywa się przez **dotykowy numpad** (panel na dole ekranu z dużymi przyciskami 0–9, X, ←, ✓ OK) zamiast klawiatury systemowej — wygodniejszy na telefonie. Numpad pokazuje nazwę pola, próg i wpisy innych graczy. Po zatwierdzeniu pole pokazuje wartość końcową.
 
 | Pole | Wpisujesz (oczka) | Pole pokazuje | Przelicznik |
 |---|---|---|---|
