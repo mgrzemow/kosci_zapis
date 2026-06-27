@@ -42,6 +42,17 @@
   }
   function myPidFor(sid) { return localStorage.getItem("kosci_pid_" + sid); }
   function setMyPid(sid, pid) { localStorage.setItem("kosci_pid_" + sid, pid); }
+  function savedGames() { try { return JSON.parse(localStorage.getItem("kosci_games") || "[]"); } catch (e) { return []; } }
+  function saveGame(sid) {
+    var list = savedGames().filter(function (s) { return s !== sid; });
+    list.unshift(sid);
+    localStorage.setItem("kosci_games", JSON.stringify(list));
+  }
+  function forgetGame(sid) {
+    var list = savedGames().filter(function (s) { return s !== sid; });
+    localStorage.setItem("kosci_games", JSON.stringify(list));
+    localStorage.removeItem("kosci_pid_" + sid);
+  }
 
   var floorMode = (function () { try { return localStorage.getItem("kosci_floorMode") || "oczka"; } catch (e) { return "oczka"; } })();
   var theme = (function () { try { return localStorage.getItem("kosci_theme") || "auto"; } catch (e) { return "auto"; } })();
@@ -557,7 +568,9 @@
     gridsSnap = null; lastMoveCell = null;
     var sid = parseHash();
     curSid = sid;
-    if (!sid) { renderStart(); return; }
+    if (location.hash === "#/new") { renderStart(); return; }
+    if (!sid) { renderGameList(); return; }
+    saveGame(sid);
     $app().innerHTML = '<div class="screen"><p class="muted">Ładowanie sesji…</p></div>';
     unsub = DB.subscribe(sid, function (s) { curSession = s; onSession(); });
     unsubPres = DB.watchPresence(sid, function (p) { curPresence = p || {}; if (curSession) onSession(); });
@@ -566,7 +579,7 @@
   function onSession() {
     var sid = curSid;
     if (!curSession) {
-      $app().innerHTML = '<div class="screen"><h2>Nie znaleziono gry</h2><p class="muted">Sprawdź link albo zacznij nową grę.</p><p><button class="btn btn-primary" onclick="location.hash=\'\'">Nowa gra</button></p></div>';
+      $app().innerHTML = '<div class="screen"><h2>Nie znaleziono gry</h2><p class="muted">Sprawdź link albo zacznij nową grę.</p><p><button class="btn btn-primary" onclick="location.hash=\'\'">← Lista gier</button></p></div>';
       return;
     }
     var myPid = myPidFor(sid);
@@ -587,17 +600,83 @@
     DB.setStatus(sid, "finished");
   }
 
+  /* ---------- Ekran 0: Lista gier ---------- */
+  function renderGameList() {
+    var list = savedGames();
+    var h = '<div class="screen">';
+    h += '<h1>Kości — zapis</h1>';
+    h += '<p><button class="btn btn-primary" onclick="location.hash=\'#/new\'">+ Nowa gra</button></p>';
+    if (!list.length) {
+      h += '<p class="muted">Brak zapisanych gier.</p>';
+    } else {
+      h += '<div id="gameList"><p class="muted">Ładowanie listy…</p></div>';
+    }
+    h += '</div>';
+    $app().innerHTML = h;
+    if (!list.length) return;
+    var loaded = 0, items = [];
+    list.forEach(function (sid, idx) {
+      DB.fetchSession(sid).then(function (s) {
+        items[idx] = {sid: sid, session: s};
+        loaded++;
+        if (loaded === list.length) renderGameItems(items);
+      }).catch(function () {
+        items[idx] = {sid: sid, session: null};
+        loaded++;
+        if (loaded === list.length) renderGameItems(items);
+      });
+    });
+  }
+  function renderGameItems(items) {
+    var el = document.getElementById("gameList");
+    if (!el) return;
+    var h = '';
+    items.forEach(function (item) {
+      var sid = item.sid, s = item.session;
+      if (!s) {
+        h += '<div class="gl-row gl-gone"><span class="gl-info"><span class="gl-players">Gra usunięta</span><span class="gl-code">' + esc(sid) + '</span></span>';
+        h += '<button class="btn btn-sm gl-del" data-sid="' + sid + '">Usuń</button></div>';
+        return;
+      }
+      var players = s.players || {}, meta = s.meta || {};
+      var names = Object.keys(players).map(function (p) { return players[p].name; });
+      var date = meta.createdAt ? new Date(meta.createdAt) : null;
+      var dateStr = date ? date.toLocaleDateString("pl") : "?";
+      var finished = meta.status === "finished";
+      var grids = s.grids || {}, weights = meta.weights || {};
+      var playerIds = Object.keys(players);
+      var standings = R.gameStandings(R.columnBases(grids, weights, playerIds), playerIds);
+      var scores = playerIds.map(function (pid) { return players[pid].name + " " + standings[pid].total; });
+      h += '<div class="gl-row' + (finished ? ' gl-fin' : '') + '">';
+      h += '<a class="gl-info" href="#/s/' + sid + '">';
+      h += '<span class="gl-date">' + dateStr + (finished ? ' ✓' : '') + '</span>';
+      h += '<span class="gl-players">' + esc(names.join(", ")) + '</span>';
+      h += '<span class="gl-scores">' + esc(scores.join(" · ")) + '</span>';
+      h += '</a>';
+      h += '<button class="btn btn-sm gl-del" data-sid="' + sid + '">🗑</button>';
+      h += '</div>';
+    });
+    el.innerHTML = h;
+    var dels = el.querySelectorAll(".gl-del");
+    for (var i = 0; i < dels.length; i++) dels[i].onclick = function () {
+      var sid = this.getAttribute("data-sid");
+      if (!confirm("Usunąć grę " + sid + " z listy?")) return;
+      forgetGame(sid);
+      renderGameList();
+    };
+  }
+
   /* ---------- Ekran 1: Nowa gra ---------- */
   function renderStart() {
     var h = "";
     h += '<div class="screen">';
-    h += "<h1>Kości — zapis</h1>";
-    h += '<p class="sub">Dodaj graczy, utwórz grę i podaj jeden link wszystkim. Każdy gra na swoim telefonie.</p>';
     h += '<h2>Nowa gra</h2>';
+    h += '<p class="sub">Dodaj graczy, utwórz grę i podaj jeden link wszystkim. Każdy gra na swoim telefonie.</p>';
     h += '<div class="name-list" id="names"></div>';
     h += '<div class="row" style="margin-bottom:14px"><button class="btn btn-sm" id="addName">+ dodaj gracza</button></div>';
     h += '<button class="btn btn-primary" id="create">Utwórz grę</button>';
     h += '<p class="err-line" id="startErr" style="display:none"></p>';
+    h += '<p style="margin-top:14px"><button class="btn btn-sm" onclick="location.hash=\'\'">← Lista gier</button></p>';
     h += "</div>";
     $app().innerHTML = h;
     addNameRow("Żaneta"); addNameRow("Anna"); addNameRow("Piotr"); addNameRow("Michał");
@@ -641,7 +720,7 @@
       h += '<button class="pick' + (busy ? " busy" : "") + '" data-pid="' + pid + '">' + esc(players[pid].name) + (busy ? ' <span class="muted">(zajęte)</span>' : "") + "</button>";
     });
     h += "</div>";
-    h += '<p class="row" style="margin-top:14px"><button class="btn btn-sm" onclick="location.hash=\'\'">Nowa gra</button></p>';
+    h += '<p class="row" style="margin-top:14px"><button class="btn btn-sm" onclick="location.hash=\'\'">← Lista gier</button></p>';
     h += "</div>";
     $app().innerHTML = h;
     var btns = document.querySelectorAll(".pick");
@@ -661,10 +740,10 @@
     var finished = curSession.meta && curSession.meta.status === "finished";
     var focus = captureFocus();
 
-    var h = '<div class="topbar"><h1 style="margin:0">Kości — zapis</h1><span class="spacer"></span>';
+    var h = '<div class="topbar">';
     h += '<button class="btn btn-sm" id="copyBtn">Kopiuj link</button>';
     h += '<button class="btn btn-sm" id="changeBtn">Zmień gracza</button>';
-    h += '<button class="btn btn-sm" onclick="if(confirm(\'Wyjść do nowej gry?\'))location.hash=\'\'">Nowa gra</button></div>';
+    h += '<button class="btn btn-sm" onclick="location.hash=\'\'">Lista gier</button></div>';
 
     if (curPresence[myPid] && curPresence[myPid] !== clientId())
       h += '<div class="warn">Uwaga: pod Twoim imieniem gra ktoś jeszcze na innym urządzeniu. Wpisy mogą się nadpisywać.</div>';

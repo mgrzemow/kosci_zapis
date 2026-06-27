@@ -79,6 +79,13 @@
     return db.ref("sessions/" + sid + "/presence/" + pid).remove();
   }
 
+  function fetchSession(sid) {
+    return sref(sid).once("value").then(function (snap) { return snap.val(); });
+  }
+  function removeSession(sid) {
+    return sref(sid).remove();
+  }
+
   window.DB = {
     genKey: genKey,
     releasePresence: releasePresence,
@@ -91,6 +98,8 @@
     setOrder: setOrder,
     setTurn: setTurn,
     claimPresence: claimPresence,
-    watchPresence: watchPresence
+    watchPresence: watchPresence,
+    fetchSession: fetchSession,
+    removeSession: removeSession
   };
 })();
