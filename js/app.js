@@ -224,6 +224,7 @@
   function openNumpad(col, row) {
     if (row.charAt(0) === "j") { openDicePick(col, row); return; }
     if (row === "full") { openFullPick(col, row); return; }
+    if (row === "strit" || row === "kareta" || row === "poker" || row === "malusie") { openFigurePick(col, row); return; }
     closeDicePick();
     var grids = curSession.grids || {}, pid = myPidFor(curSid);
     var grid = grids[pid] || {};
@@ -360,7 +361,72 @@
     closeDicePick();
   }
 
-  // ── Full picker (3×a + 2×b, tabela 6×6, jedno tapnięcie) ──
+  // ── Figure picker (strit/kareta/poker/malusie) ──
+  function openFigurePick(col, row) {
+    closeNumpad();
+    var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var grid = grids[pid] || {};
+    var v = (grid[col] || {})[row];
+    var fl = R.floorEff(grids, pid, col, row);
+    dpState = {col: col, row: row};
+    var el = ensureDicePick();
+    document.getElementById("dpField").textContent = (ROW_SHORT[row] || row) + " · " + (COL_SYM[col] ? COL_SYM[col] + " " : "") + (COL_FULL[col] || col);
+    document.getElementById("dpHint").textContent = floorPlaceholder(row, fl);
+    var others = cellOwnersOthers(grids, col, row, pid);
+    var oEl = document.getElementById("dpOthers");
+    oEl.textContent = others; oEl.style.display = others ? "block" : "none";
+    var opts = document.getElementById("dpOpts");
+    opts.className = "dp-opts";
+    var h = "";
+    if (row === "strit") {
+      var so = [{p:15, lbl:"mały", d:"⚀⚁⚂⚃⚄"}, {p:20, lbl:"duży", d:"⚁⚂⚃⚄⚅"}];
+      for (var s = 0; s < so.length; s++) {
+        var sv = so[s].p + 30, dis = fl > 0 && sv < fl;
+        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === sv;
+        h += '<button data-dv="' + so[s].p + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
+          '<span class="dp-dice">' + so[s].lbl + '</span>' +
+          '<span class="dp-val">' + so[s].d + ' = ' + so[s].p + '</span></button>';
+      }
+    } else if (row === "kareta") {
+      for (var k = 1; k <= 6; k++) {
+        var kp = 4 * k, kv = kp + 30, dis = fl > 0 && kv < fl;
+        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === kv;
+        h += '<button data-dv="' + kp + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
+          '<span class="dp-dice">' + k + '</span>' +
+          '<span class="dp-val">4×' + k + ' = ' + kp + '</span></button>';
+      }
+    } else if (row === "poker") {
+      for (var p = 1; p <= 6; p++) {
+        var pp = 5 * p, pv = pp + 70, dis = fl > 0 && pv < fl;
+        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pv;
+        h += '<button data-dv="' + pp + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
+          '<span class="dp-dice">' + p + '</span>' +
+          '<span class="dp-val">5×' + p + ' = ' + pp + '</span></button>';
+      }
+    } else if (row === "malusie") {
+      for (var m = 5; m <= 8; m++) {
+        var mv = 100 - 5 * m, dis = fl > 0 && mv < fl;
+        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === mv;
+        h += '<button data-dv="' + m + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
+          '<span class="dp-dice">' + m + '</span>' +
+          '<span class="dp-val">' + m + ' oczek → ' + mv + ' pkt</span></button>';
+      }
+    }
+    h += '<button data-dv="X" class="dp-x">X</button>';
+    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">🗑</button>';
+    opts.innerHTML = h;
+    el.classList.add("show");
+    highlightNpCell();
+    document.body.style.paddingBottom = (el.offsetHeight + 10) + "px";
+    var inp = document.querySelector('#cardArea input.cinp[data-col="' + col + '"][data-row="' + row + '"]');
+    if (inp) {
+      var rect = inp.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - (el.offsetHeight || 250) - 20)
+        inp.scrollIntoView({block: "center", behavior: "smooth"});
+    }
+  }
+
+  // ── Full picker (3×a + 2×b, dwie kolumny) ──
   function openFullPick(col, row) {
     closeNumpad();
     var grids = curSession.grids || {}, pid = myPidFor(curSid);
