@@ -319,7 +319,9 @@
     var others = cellOwnersOthers(grids, col, row, pid);
     var oEl = document.getElementById("dpOthers");
     oEl.textContent = others; oEl.style.display = others ? "block" : "none";
-    var opts = document.getElementById("dpOpts"), h = "";
+    var opts = document.getElementById("dpOpts");
+    opts.className = "dp-opts";
+    var h = "";
     for (var i = 0; i <= 5; i++) {
       var val = i * nom;
       var dis = fl > 0 && val < fl;
@@ -372,24 +374,24 @@
     var others = cellOwnersOthers(grids, col, row, pid);
     var oEl = document.getElementById("dpOthers");
     oEl.textContent = others; oEl.style.display = others ? "block" : "none";
-    var opts = document.getElementById("dpOpts"), h = "";
-    h += '<div class="fg"><div class="fg-corner">3×↓&ensp;2×→</div>';
-    for (var b = 1; b <= 6; b++) h += '<div class="fg-hdr">' + b + "</div>";
+    var opts = document.getElementById("dpOpts");
+    opts.className = "dp-opts dp-full";
+    var h = "";
     for (var a = 1; a <= 6; a++) {
-      h += '<div class="fg-row">' + a + "</div>";
-      for (var b2 = 1; b2 <= 6; b2++) {
-        if (a === b2) { h += '<div class="fg-blank"></div>'; continue; }
-        var pips = 3 * a + 2 * b2;
+      h += '<div class="fg-label">trójka ' + a + ":</div>";
+      for (var b = 1; b <= 6; b++) {
+        if (a === b) continue;
+        var pips = 3 * a + 2 * b;
         var val = pips + 20;
         var dis = fl > 0 && val < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
-        h += '<button data-dv="' + pips + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" + pips + "</button>";
+        h += '<button data-dv="' + pips + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" +
+          '<span class="fg-combo">' + a + "+" + b + "</span>" +
+          '<span class="dp-val">= ' + pips + "</span></button>";
       }
     }
-    h += "</div>";
-    h += '<div class="fg-foot"><button data-dv="X" class="dp-x">X</button>';
+    h += '<button data-dv="X" class="dp-x">X</button>';
     if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
-    h += "</div>";
     opts.innerHTML = h;
     el.classList.add("show");
     highlightNpCell();
