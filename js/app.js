@@ -1050,6 +1050,9 @@
     }
   } catch (e) {}
   applyTableMode();
+  window.addEventListener("beforeunload", function (e) {
+    if (curSid) { e.preventDefault(); e.returnValue = ""; }
+  });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
   else route();
 })();
