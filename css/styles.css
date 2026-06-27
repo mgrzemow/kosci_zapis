@@ -52,7 +52,7 @@ h2{font-size:16px;font-weight:600;margin:0 0 10px}
 .link-box code{font-size:12px;word-break:break-all;color:var(--t-info)}
 
 .pick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 6px}
-.pick{font-family:inherit;font-size:15px;padding:14px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--inp-bg);cursor:pointer;text-align:center}
+.pick{font-family:inherit;font-size:15px;padding:14px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--inp-bg);color:var(--t);cursor:pointer;text-align:center}
 .pick:hover{background:var(--surface2)}
 .pick.busy{border-color:var(--t-warn)}
 
