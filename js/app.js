@@ -449,9 +449,9 @@
     dpState.ft = null; dpState.fp = null;
     var h = '<div class="ff"><div class="ff-col ff-tri"><div class="ff-hdr">trójka</div>';
     var FDI = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-    for (var i = 1; i <= 6; i++) h += '<button class="ff-btn" data-ft="' + i + '"><span class="dp-dice">' + FDI[i] + '</span></button>';
+    for (var i = 1; i <= 6; i++) h += '<button class="ff-btn" data-ft="' + i + '"><span class="fg-strit">' + Array(4).join(FDI[i]) + '</span></button>';
     h += '</div><div class="ff-mid"><div class="ff-sum" id="ffSum">—</div></div><div class="ff-col"><div class="ff-hdr">para</div>';
-    for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="dp-dice">' + FDI[j] + '</span></button>';
+    for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="fg-strit">' + Array(3).join(FDI[j]) + '</span></button>';
     h += '</div></div><div class="ff-foot">';
     h += '<button data-dv="X" class="dp-x ff-x">X</button>';
     if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">🗑</button>';
