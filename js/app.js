@@ -353,25 +353,44 @@
   function dpSelect(val) {
     if (!dpState) return;
     if (val === "") { DB.clearCell(curSid, myPidFor(curSid), dpState.col, dpState.row); closeDicePick(); return; }
-    if (/^ft\d$/.test(val)) { dpState.fullTriple = parseInt(val.charAt(2)); renderFullStep2(dpState.fullTriple); return; }
-    if (val === "ft-back") { dpState.fullTriple = null; renderFullStep1(); return; }
     var fake = {value: val, dataset: {col: dpState.col, row: dpState.row}};
     commit(curSid, myPidFor(curSid), fake);
     closeDicePick();
   }
 
-  // ── Full picker (3×a + 2×b, dwa tapnięcia) ──
+  // ── Full picker (3×a + 2×b, tabela 6×6, jedno tapnięcie) ──
   function openFullPick(col, row) {
     closeNumpad();
     var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var grid = grids[pid] || {};
+    var v = (grid[col] || {})[row];
     var fl = R.floorEff(grids, pid, col, row);
-    dpState = {col: col, row: row, fullTriple: null};
+    dpState = {col: col, row: row};
     var el = ensureDicePick();
+    document.getElementById("dpField").textContent = "full · " + (COL_SYM[col] ? COL_SYM[col] + " " : "") + (COL_FULL[col] || col);
     document.getElementById("dpHint").textContent = floorPlaceholder(row, fl);
     var others = cellOwnersOthers(grids, col, row, pid);
     var oEl = document.getElementById("dpOthers");
     oEl.textContent = others; oEl.style.display = others ? "block" : "none";
-    renderFullStep1();
+    var opts = document.getElementById("dpOpts"), h = "";
+    h += '<div class="fg"><div class="fg-corner">3×↓&ensp;2×→</div>';
+    for (var b = 1; b <= 6; b++) h += '<div class="fg-hdr">' + b + "</div>";
+    for (var a = 1; a <= 6; a++) {
+      h += '<div class="fg-row">' + a + "</div>";
+      for (var b2 = 1; b2 <= 6; b2++) {
+        if (a === b2) { h += '<div class="fg-blank"></div>'; continue; }
+        var pips = 3 * a + 2 * b2;
+        var val = pips + 20;
+        var dis = fl > 0 && val < fl;
+        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
+        h += '<button data-dv="' + pips + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" + pips + "</button>";
+      }
+    }
+    h += "</div>";
+    h += '<div class="fg-foot"><button data-dv="X" class="dp-x">X</button>';
+    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
+    h += "</div>";
+    opts.innerHTML = h;
     el.classList.add("show");
     highlightNpCell();
     document.body.style.paddingBottom = (el.offsetHeight + 10) + "px";
@@ -381,34 +400,6 @@
       if (rect.bottom > window.innerHeight - (el.offsetHeight || 250) - 20)
         inp.scrollIntoView({block: "center", behavior: "smooth"});
     }
-  }
-  function renderFullStep1() {
-    document.getElementById("dpField").textContent = "full — trójka z:";
-    var grids = curSession.grids || {}, pid = myPidFor(curSid);
-    var v = dpState && grids[pid] && grids[pid][dpState.col] && grids[pid][dpState.col][dpState.row];
-    var opts = document.getElementById("dpOpts"), h = "";
-    for (var a = 1; a <= 6; a++)
-      h += '<button data-dv="ft' + a + '"><span class="dp-dice">' + a + "</span></button>";
-    h += '<button data-dv="X" class="dp-x">X</button>';
-    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
-    opts.innerHTML = h;
-  }
-  function renderFullStep2(triple) {
-    document.getElementById("dpField").textContent = "full 3×" + triple + " — para z:";
-    var grids = curSession.grids || {}, pid = myPidFor(curSid);
-    var fl = R.floorEff(grids, pid, dpState.col, dpState.row);
-    var opts = document.getElementById("dpOpts"), h = "";
-    for (var b = 1; b <= 6; b++) {
-      if (b === triple) continue;
-      var pips = 3 * triple + 2 * b;
-      var val = pips + 20;
-      var dis = fl > 0 && val < fl;
-      h += '<button data-dv="' + pips + '"' + (dis ? " disabled" : "") + ">" +
-        '<span class="dp-dice">' + b + "</span>" +
-        '<span class="dp-val">= ' + pips + " oczek</span></button>";
-    }
-    h += '<button data-dv="ft-back" class="dp-clr">← wróć</button>';
-    opts.innerHTML = h;
   }
 
   var curSid = null, curSession = null, curPresence = {}, activeTab = null;

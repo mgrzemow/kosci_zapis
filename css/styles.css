@@ -173,6 +173,18 @@ td.npactive{box-shadow:inset 0 0 0 2px var(--focus)!important;background:var(--f
 .dp-x{color:var(--t-err)!important;font-weight:800!important;font-size:22px!important}
 .dp-clr{color:var(--t3)!important;font-size:13px!important;font-weight:600!important}
 
+/* Full grid (6×6) */
+.fg{display:grid;grid-template-columns:32px repeat(6,1fr);gap:3px}
+.fg-corner{font-size:10px;color:var(--t3);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1}
+.fg-hdr{font-size:13px;font-weight:700;color:var(--t2);text-align:center;padding:4px 0}
+.fg-row{font-size:13px;font-weight:700;color:var(--t2);display:flex;align-items:center;justify-content:center}
+.fg-blank{background:var(--bd);border-radius:var(--r);opacity:.15}
+.fg button{font-family:inherit;font-size:15px;font-weight:700;padding:10px 0;border:1px solid var(--bd2);border-radius:var(--r);background:var(--surface2);color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
+.fg button:active:not(:disabled){background:var(--info-bg);color:var(--t-info)}
+.fg button:disabled{opacity:.25;cursor:default}
+.fg-foot{display:flex;gap:6px;margin-top:6px}
+.fg-foot button{flex:1;font-family:inherit;padding:10px 0;border:1px solid var(--bd2);border-radius:var(--r);background:var(--surface2);color:var(--t);cursor:pointer;touch-action:manipulation;font-size:16px;font-weight:700}
+
 @media (max-width:480px){
   body{padding:7px 5px}
   .screen{padding:13px}
