@@ -662,6 +662,25 @@
     if (curPresence[myPid] && curPresence[myPid] !== clientId())
       h += '<div class="warn">Uwaga: pod Twoim imieniem gra ktoś jeszcze na innym urządzeniu. Wpisy mogą się nadpisywać.</div>';
 
+    if (!finished && playerIds.length >= 2) {
+      var counts = {}, minC = Infinity, maxC = -Infinity;
+      playerIds.forEach(function (pid) {
+        var g = grids[pid] || {}, cnt = 0;
+        R.COLS.forEach(function (c) { R.ROWS.forEach(function (r) { if (R.isFilled(g[c] && g[c][r])) cnt++; }); });
+        counts[pid] = cnt;
+        if (cnt < minC) minC = cnt;
+        if (cnt > maxC) maxC = cnt;
+      });
+      if (maxC - minC >= 2) {
+        var ahead = [], behind = [];
+        playerIds.forEach(function (pid) {
+          if (counts[pid] === maxC) ahead.push(players[pid].name + " (" + counts[pid] + ")");
+          if (counts[pid] === minC) behind.push(players[pid].name + " (" + counts[pid] + ")");
+        });
+        h += '<div class="warn">⚠ Nierówna liczba wpisów! ' + ahead.join(", ") + " vs " + behind.join(", ") + "</div>";
+      }
+    }
+
     if (finished) h += rankingHTML(standings, myPid);
 
     var maxT = -Infinity;
