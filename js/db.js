@@ -82,6 +82,12 @@
   function fetchSession(sid) {
     return sref(sid).once("value").then(function (snap) { return snap.val(); });
   }
+  function listSessions() {
+    return db.ref("sessions").once("value").then(function (snap) {
+      var val = snap.val() || {};
+      return Object.keys(val).map(function (sid) { return { sid: sid, session: val[sid] }; });
+    });
+  }
   function removeSession(sid) {
     return sref(sid).remove();
   }
@@ -100,6 +106,7 @@
     claimPresence: claimPresence,
     watchPresence: watchPresence,
     fetchSession: fetchSession,
-    removeSession: removeSession
+    removeSession: removeSession,
+    listSessions: listSessions
   };
 })();

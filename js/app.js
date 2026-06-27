@@ -607,42 +607,31 @@
 
   /* ---------- Ekran 0: Lista gier ---------- */
   function renderGameList() {
-    var list = savedGames();
     var h = '<div class="screen">';
     h += '<h1>Kości — zapis</h1>';
     h += '<p><button class="btn btn-primary" onclick="location.hash=\'#/new\'">+ Nowa gra</button></p>';
-    if (!list.length) {
-      h += '<p class="muted">Brak zapisanych gier.</p>';
-    } else {
-      h += '<div id="gameList"><p class="muted">Ładowanie listy…</p></div>';
-    }
+    h += '<div id="gameList"><p class="muted">Ładowanie listy…</p></div>';
     h += '</div>';
     $app().innerHTML = h;
-    if (!list.length) return;
-    var loaded = 0, items = [];
-    list.forEach(function (sid, idx) {
-      DB.fetchSession(sid).then(function (s) {
-        items[idx] = {sid: sid, session: s};
-        loaded++;
-        if (loaded === list.length) renderGameItems(items);
-      }).catch(function () {
-        items[idx] = {sid: sid, session: null};
-        loaded++;
-        if (loaded === list.length) renderGameItems(items);
+    DB.listSessions().then(function (items) {
+      items.sort(function (a, b) {
+        var ta = (a.session.meta && a.session.meta.createdAt) || 0;
+        var tb = (b.session.meta && b.session.meta.createdAt) || 0;
+        return tb - ta;
       });
+      renderGameItems(items);
+    }).catch(function () {
+      var el = document.getElementById("gameList");
+      if (el) el.innerHTML = '<p class="muted">Nie udało się pobrać listy gier.</p>';
     });
   }
   function renderGameItems(items) {
     var el = document.getElementById("gameList");
     if (!el) return;
+    if (!items.length) { el.innerHTML = '<p class="muted">Brak gier.</p>'; return; }
     var h = '';
     items.forEach(function (item) {
       var sid = item.sid, s = item.session;
-      if (!s) {
-        h += '<div class="gl-row gl-gone"><span class="gl-info"><span class="gl-players">Gra usunięta</span><span class="gl-code">' + esc(sid) + '</span></span>';
-        h += '<button class="btn btn-sm gl-del" data-sid="' + sid + '">Usuń</button></div>';
-        return;
-      }
       var players = s.players || {}, meta = s.meta || {};
       var names = Object.keys(players).map(function (p) { return players[p].name; });
       var date = meta.createdAt ? new Date(meta.createdAt) : null;
@@ -665,9 +654,8 @@
     var dels = el.querySelectorAll(".gl-del");
     for (var i = 0; i < dels.length; i++) dels[i].onclick = function () {
       var sid = this.getAttribute("data-sid");
-      if (!confirm("Usunąć grę " + sid + " z listy?")) return;
-      forgetGame(sid);
-      renderGameList();
+      if (!confirm("Usunąć grę " + sid + "? Zostanie trwale usunięta.")) return;
+      DB.removeSession(sid).then(function () { renderGameList(); });
     };
   }
 

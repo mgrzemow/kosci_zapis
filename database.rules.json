@@ -3,8 +3,8 @@
     ".read": false,
     ".write": false,
     "sessions": {
+      ".read": true,
       "$sid": {
-        ".read": true,
         ".write": true,
         ".validate": "$sid.length >= 4 && $sid.length <= 16 && newData.hasChildren()",
         "meta": {
