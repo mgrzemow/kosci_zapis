@@ -200,7 +200,19 @@
     for (i = 0; i < playerIds.length; i++) if (res.indexOf(playerIds[i]) < 0) res.push(playerIds[i]);
     return res;
   }
+  // Czy w grze padł już jakikolwiek wpis (dowolne pole u dowolnego gracza)?
+  function gameStarted() {
+    var grids = (curSession && curSession.grids) || {};
+    for (var p in grids) {
+      var g = grids[p] || {};
+      for (var c = 0; c < R.COLS.length; c++)
+        for (var r = 0; r < R.ROWS.length; r++)
+          if (R.isFilled(g[R.COLS[c]] && g[R.COLS[c]][R.ROWS[r]])) return true;
+    }
+    return false;
+  }
   function moveOrder(sid, order, pid, dir) {
+    if (gameStarted()) return;   // kolejność można zmieniać tylko do pierwszego wpisu
     var i = order.indexOf(pid); if (i < 0) return;
     var j = dir === "up" ? i - 1 : i + 1; if (j < 0 || j >= order.length) return;
     var no = order.slice(), t = no[i]; no[i] = no[j]; no[j] = t;
@@ -836,7 +848,8 @@
     var curTurn = (curSession.meta && curSession.meta.turn) || turnOrder[0];
     if (playerIds.indexOf(curTurn) < 0) curTurn = turnOrder[0];
     h += '<div class="tabs">';
-    var order = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
+    // Kolejność zakładek = kanoniczna kolejność graczy (ta sama u wszystkich); gracz rozpoczynający jest pierwszy.
+    var order = turnOrder;
     order.forEach(function (pid) {
       var me = pid === myPid, st = standings[pid];
       var done = R.cardComplete(grids[pid] || {});
@@ -881,11 +894,13 @@
     h += '<div class="optrow"><label class="tbl"><input type="checkbox" id="tableMode"' + (tableMode ? " checked" : "") + "> Tryb stołowy — nie wygaszaj ekranu i przypominaj o kolejce</label></div>";
     h += '<div class="optrow"><label class="tbl"><input type="checkbox" id="voiceOn"' + (voiceOn ? " checked" : "") + "> Zapowiedź głosem („Twoja kolej, " + esc(players[myPid].name) + "”)</label>" +
       '<button class="btn btn-sm" id="pingTest" type="button">🔔 Test</button></div>';
-    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span></div><div class="orderlist">';
+    var orderLocked = gameStarted();   // po pierwszym wpisie kolejności już nie zmieniamy
+    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):' +
+      (orderLocked ? ' <span class="muted">— zablokowana (gra się zaczęła)</span>' : '') + "</span></div><div class=\"orderlist\">";
     turnOrder.forEach(function (pid, i) {
       h += '<div class="orow' + (pid === myPid ? " me" : "") + '"><span>' + (i + 1) + ". " + esc(players[pid].name) + "</span><span>" +
-        '<button class="obtn" data-mv="up" data-pid="' + pid + '"' + (i === 0 ? " disabled" : "") + ">▲</button>" +
-        '<button class="obtn" data-mv="down" data-pid="' + pid + '"' + (i === turnOrder.length - 1 ? " disabled" : "") + ">▼</button></span></div>";
+        '<button class="obtn" data-mv="up" data-pid="' + pid + '"' + (orderLocked || i === 0 ? " disabled" : "") + ">▲</button>" +
+        '<button class="obtn" data-mv="down" data-pid="' + pid + '"' + (orderLocked || i === turnOrder.length - 1 ? " disabled" : "") + ">▼</button></span></div>";
     });
     h += "</div></div>";
 
@@ -932,7 +947,7 @@
         var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
         sx = null;
         if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
-        var pids = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
+        var pids = turnOrder;
         var ci = pids.indexOf(activeTab);
         if (ci < 0) return;
         var ni = dx < 0 ? ci + 1 : ci - 1;
