@@ -64,11 +64,11 @@
     return db.ref("sessions/" + sid + "/meta/turn").set(pid);
   }
 
-  // Obecność — do ostrzeżenia „imię używane na innym urządzeniu”.
+  // Obecność / rezerwacja imienia — trwała: zajęte imię pozostaje oznaczone u wszystkich,
+  // dopóki gracz nie zwolni go jawnie („Zmień gracza” → releasePresence). Bez onDisconnect,
+  // bo uśpienie telefonu rwie połączenie i kasowałoby oznaczenie pozostałych graczy.
   function claimPresence(sid, pid, clientId) {
-    var ref = db.ref("sessions/" + sid + "/presence/" + pid);
-    ref.onDisconnect().remove();
-    ref.set(clientId);
+    db.ref("sessions/" + sid + "/presence/" + pid).set(clientId);
   }
   function watchPresence(sid, cb) {
     var ref = db.ref("sessions/" + sid + "/presence");

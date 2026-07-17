@@ -150,6 +150,9 @@
     if (row === "plus") {
       var fm = floorFor(allGrids, pid, col, "minus");
       if (fm > 0 && fm + 1 > base) base = fm + 1;
+      // Własne „−” w tej kolumnie też podnosi próg: „+” musi być większe niż moje „−”.
+      var own = allGrids && allGrids[pid] && allGrids[pid][col] && allGrids[pid][col]["minus"];
+      if (!isEmpty(own) && !isCross(own) && numVal(own) + 1 > base) base = numVal(own) + 1;
     }
     return base;
   }
