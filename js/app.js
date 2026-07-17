@@ -1092,6 +1092,13 @@
     if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
     if (/^x$/i.test(raw)) {
       DB.setCell(sid, myPid, col, row, "X");
+      // Para +/−: jeśli partner ma wpisaną WARTOŚĆ liczbową, skreślenie tego pola skreśla też partnera
+      // (pary nie da się zostawić w stanie „jedno z wynikiem, drugie skreślone”).
+      if (row === "plus" || row === "minus") {
+        var xPartner = row === "plus" ? "minus" : "plus";
+        var xpv = grids[myPid] && grids[myPid][col] && grids[myPid][col][xPartner];
+        if (R.isFilled(xpv) && !R.isCross(xpv)) DB.setCell(sid, myPid, col, xPartner, "X");
+      }
       // Skreślenie (także w polu „−”/„+”) to pełny ruch — przesuwa kolejkę. W korekcie kolejka zostaje.
       if (correcting) endCorrection(sid); else advanceTurn(sid, myPid);
       return;

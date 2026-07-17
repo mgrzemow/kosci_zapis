@@ -41,7 +41,11 @@ Na start każda kolumna dostaje **losowo jedną z wag: 8, 10, 12, 14, 16, 18** (
 - **Aplikacja pilnuje:** kolejności w kolumnach — odblokowuje tylko legalne pola (Dół z góry, Góra z dołu, Harmonia od środka; Wolne/Anons/Drugi rzut — dowolnie); progu „≥ X" na żywo; dozwolonych wartości, premii i wyniku (patrz zapis.md); wykrycia końca gry.
 - **Zostawia graczom** (apka nie widzi kości): **liczbę rzutów** i **deklarację „Anons"** — dlatego kolumny **Anons** i **Drugi rzut** mają w aplikacji dowolną kolejność.
 - **Skreślanie przy stole:** w kolumnach z kolejnością skreślasz tylko bieżące pole; w **Anonsie** — po zapowiedzi; wyjątek **Drugi rzut** — można skreślić nawet po 3. rzucie. (Mechanika „X = 0" — zapis.md.)
-- **Para +/−:** skreślenie jednego **nie skreśla** automatycznie drugiego. Każde skreślenie to **pełny ruch** (przesuwa kolejkę) — partnera skreślasz osobno w jednej ze swoich kolejnych tur; „nie traci ruchu" znaczy, że nie tracisz prawa do zapisania partnera później. Gdy partner jest skreślony, drugie pole dopuszcza tylko X.
+- **Para +/−:** nie da się jej zostawić w stanie „jedno pole z wynikiem, drugie skreślone". Skreślenie jednego pola:
+  - gdy partner ma już **wartość** — partner zostaje **automatycznie skreślony (X)** w tym samym ruchu;
+  - gdy partner jest **pusty** — dopuszcza on już **wyłącznie X**; skreślasz go osobno w jednej ze swoich kolejnych tur (nie tracisz prawa do jego zapisania, dopóki był pusty).
+
+  Każde skreślenie to **pełny ruch** (przesuwa kolejkę). Skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
 
 ## Jak ma się do zapisu
 Wpisujesz **oczka z kości** — pole samo przelicza je na punkty. Wartości figur, premie, wynik kolumny (× waga ÷ 10), **pojedynki head‑to‑head** (różnice, dublowanie, ☠/★) oraz walidacja są w **[zapis.md](zapis.md)**.

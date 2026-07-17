@@ -44,7 +44,7 @@ Pola **1–6**, **+**, **−** wpisuje się wprost (bez przelicznika). **Wewnęt
 | `malusie` | 100 − 5 × oczka (tylko 5–8 oczek) | 75 |
 | `poker` | suma 5 kości + 70 | 100 |
 
-Maksima w `Rules.MAXES`. Para **+/−** jest powiązana: skreślenie jednego **nie skreśla** automatycznie drugiego — każde skreślenie to **pełny ruch (przesuwa kolejkę)**, partnera skreślasz osobno w jednej z kolejnych swoich tur. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X (blokada liczbowego wpisu w `app.js`).
+Maksima w `Rules.MAXES`. Para **+/−** jest powiązana i nie może zostać w stanie „jedno pole z wynikiem, drugie skreślone": przy skreśleniu jednego pola, jeśli partner ma już **wartość** — zostaje **automatycznie skreślony (X)** (logika w `app.js`); jeśli partner jest **pusty** — dopuszcza już wyłącznie X (blokada liczbowego wpisu w `app.js`), skreślasz go osobno w kolejnej turze. Każde skreślenie to **pełny ruch (przesuwa kolejkę)**.
 
 ## Premie
 - **Premia za szkółkę** (osobno w każdej kolumnie, od sumy nominałów 1–6; `Rules.bonusSzkolka`): ≥ 60 → **+30**, ≥ 70 → **+50**, ≥ 80 → **+100**.
@@ -86,5 +86,5 @@ Pola oczkowe: wpisane **oczka** są najpierw przeliczane na wartość końcową,
 
 ## Skreślanie
 - Wpisanie `x`/`X` → pole pokazuje „X" i liczy się jako **0**.
-- Para „+"/„−": skreślenie jednego **nie skreśla** automatycznie drugiego. Każde skreślenie to **pełny ruch (przesuwa kolejkę)**; partnera skreślasz osobno w jednej z kolejnych swoich tur — „nie traci ruchu" znaczy, że nie tracisz prawa do jego zapisania później. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X. Skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
+- Para „+"/„−": nie może zostać w stanie „jedno pole z wynikiem, drugie skreślone". Skreślenie jednego pola: gdy partner ma **wartość** — zostaje **automatycznie skreślony (X)** w tym samym ruchu; gdy partner jest **pusty** — dopuszcza już **wyłącznie X** i skreślasz go osobno w kolejnej turze (nie tracisz prawa do jego zapisania, dopóki był pusty). Każde skreślenie to **pełny ruch (przesuwa kolejkę)**. Skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
 - *Kiedy wolno skreślić* (kolejność w kolumnie, Anons po zapowiedzi, Drugi rzut nawet po 3. rzucie) to reguła gry — [yams-zasady.md](yams-zasady.md).
