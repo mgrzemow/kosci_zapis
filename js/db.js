@@ -63,6 +63,13 @@
   function setTurn(sid, pid) {
     return db.ref("sessions/" + sid + "/meta/turn").set(pid);
   }
+  // Tryb korekty — pid gracza poprawiającego swój wynik (ostrzeżenie u innych). null = brak korekty.
+  function setCorrecting(sid, pid) {
+    return db.ref("sessions/" + sid + "/meta/correcting").set(pid);
+  }
+  function clearCorrecting(sid) {
+    return db.ref("sessions/" + sid + "/meta/correcting").remove();
+  }
 
   // Obecność / rezerwacja imienia — trwała: zajęte imię pozostaje oznaczone u wszystkich,
   // dopóki gracz nie zwolni go jawnie („Zmień gracza” → releasePresence). Bez onDisconnect,
@@ -103,6 +110,8 @@
     setStatus: setStatus,
     setOrder: setOrder,
     setTurn: setTurn,
+    setCorrecting: setCorrecting,
+    clearCorrecting: clearCorrecting,
     claimPresence: claimPresence,
     watchPresence: watchPresence,
     fetchSession: fetchSession,

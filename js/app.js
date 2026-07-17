@@ -190,6 +190,15 @@
     if (idx < 0) return;
     DB.setTurn(sid, turnOrder[(idx + 1) % turnOrder.length]);
   }
+  // Tryb korekty: czy JA właśnie poprawiam swój wynik (wg współdzielonego meta.correcting).
+  function isCorrecting(myPid) {
+    var who = curSession && curSession.meta && curSession.meta.correcting;
+    return !!who && who === (myPid || myPidFor(curSid));
+  }
+  function endCorrection(sid) {
+    if (curSession && curSession.meta) delete curSession.meta.correcting;  // optymistycznie, zanim wróci echo z Firebase
+    DB.clearCorrecting(sid);
+  }
   // Ping u "kolejnego gracza": gdy gracz przede mną w kolejności zmieni swój zapis.
   function maybePing(myPid) {
     var finished = curSession.meta && curSession.meta.status === "finished";
@@ -263,7 +272,7 @@
     return true;
   }
   function openNumpad(col, row) {
-    if (!checkTurn()) return;
+    if (!isCorrecting() && !checkTurn()) return;
     if (row.charAt(0) === "j") { openDicePick(col, row); return; }
     if (row === "full") { openFullPick(col, row); return; }
     if (row === "strit" || row === "kareta" || row === "poker" || row === "malusie" || row === "plus" || row === "minus") { openFigurePick(col, row); return; }
@@ -792,6 +801,19 @@
     });
     h += "</div>";
 
+    if (!finished) {
+      var correcting = curSession.meta && curSession.meta.correcting;
+      if (correcting && correcting !== myPid) {
+        h += '<div class="warn correct-alert">⚠️ UWAGA KOREKTA WYNIKÓW — ' +
+          esc((players[correcting] || {}).name || "?") + " poprawia swój wynik</div>";
+      } else if (correcting === myPid) {
+        h += '<div class="warn correct-active">✏️ Tryb korekty — dotknij swój wynik, aby go poprawić (kolejka bez zmian). ' +
+          '<button class="btn btn-sm" id="cancelCorrect">Anuluj</button></div>';
+      } else {
+        h += '<div class="correct-row"><button class="btn btn-sm" id="startCorrect">✏️ Poprawa wyniku</button></div>';
+      }
+    }
+
     if (errorMsg) h += '<div class="toast">' + esc(errorMsg) + "</div>";
 
     h += '<div id="cardArea">' + cardTableHTML(sid, activeTab, myPid, standings) + "</div>";
@@ -820,6 +842,19 @@
     h += "</div></div>";
 
     $app().innerHTML = h;
+    var startCorrectBtn = document.getElementById("startCorrect");
+    if (startCorrectBtn) startCorrectBtn.onclick = function () {
+      closeNumpad(); closeDicePick(); activeTab = myPid;
+      if (!curSession.meta) curSession.meta = {};
+      curSession.meta.correcting = myPid;                 // optymistycznie — natychmiastowy render
+      DB.setCorrecting(sid, myPid);
+      renderGame(sid, myPid);
+    };
+    var cancelCorrectBtn = document.getElementById("cancelCorrect");
+    if (cancelCorrectBtn) cancelCorrectBtn.onclick = function () {
+      endCorrection(sid);
+      renderGame(sid, myPid);
+    };
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
     document.getElementById("changeBtn").onclick = function () {
       if (!confirm("Zmienić gracza? Zwolni to Twoje imię dla innych.")) return;
@@ -1005,9 +1040,11 @@
     var col = input.dataset.col, row = input.dataset.row;
     var raw = (input.value || "").trim();
     var grids = curSession.grids || {};
+    var correcting = isCorrecting(myPid);
     if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
     if (/^x$/i.test(raw)) {
       DB.setCell(sid, myPid, col, row, "X");
+      if (correcting) { endCorrection(sid); return; }   // korekta: kolejka zostaje bez zmian
       // Skreślenie + lub − nie kończy tury, dopóki partner jest pusty (trzeba go osobno obsłużyć).
       var pcell = grids[myPid] && grids[myPid][col];
       var partnerEmpty = (row === "plus" || row === "minus") &&
@@ -1026,7 +1063,7 @@
     var res = R.validateCell(grids, myPid, col, row, val);
     if (!res.ok) { showError(res.reason); return false; }
     DB.setCell(sid, myPid, col, row, val);
-    advanceTurn(sid, myPid);
+    if (correcting) endCorrection(sid); else advanceTurn(sid, myPid);   // korekta nie przesuwa kolejki
   }
 
   function showError(msg) {

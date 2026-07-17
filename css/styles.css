@@ -58,6 +58,10 @@ h2{font-size:16px;font-weight:600;margin:0 0 10px}
 
 .warn{background:var(--warn-bg);color:var(--t-warn);border-radius:var(--r);padding:8px 12px;font-size:12.5px;margin:8px 0}
 .toast{margin:8px 0;background:var(--err-bg);color:var(--t-err);border-radius:var(--r);padding:8px 12px;font-size:13px}
+.correct-row{margin:8px 0;text-align:right}
+.correct-active{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.correct-alert{background:var(--err-bg);color:var(--t-err);font-weight:700;font-size:14px;text-align:center;letter-spacing:.3px;animation:correctPulse 1.1s ease-in-out infinite}
+@keyframes correctPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .err-line{color:var(--t-err);font-size:12px;margin:6px 0 0}
 
 .topbar{display:flex;align-items:center;gap:8px;margin:0 0 8px;flex-wrap:wrap}
