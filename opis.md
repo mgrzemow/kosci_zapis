@@ -67,7 +67,7 @@ sessions/{klucz}
 **Zostawia graczom (aplikacja tego nie widzi):** liczbę rzutów oraz deklarację „Anons" — dlatego kolumny **Anons** i **Drugi rzut** mają w aplikacji wolną kolejność wpisywania.
 
 ## Wdrożenie
-`deploy.ps1` podbija wersję zasobów (`?v=` w `index.html`) na znacznik czasu, commituje i wypycha — dzięki temu po zwykłym odświeżeniu ładuje się najnowsza wersja. Użycie:
+`deploy.ps1` podbija wersję zasobów (`?v=` w `index.html`) na znacznik czasu, commituje i wypycha — dzięki temu po zwykłym odświeżeniu ładuje się najnowsza wersja. **Wykrywanie nowej wersji:** otwarta aplikacja co ~3 min oraz po powrocie na wierzch (`visibilitychange`) pobiera `index.html` (bez cache) i porównuje `?v=` z wersją, z którą się załadowała; przy różnicy pokazuje u góry baner „🔄 Nowa wersja aplikacji — dotknij, aby odświeżyć" (tap = `location.reload`, stan gry zachowany). Użycie:
 ```
 powershell -ExecutionPolicy Bypass -File deploy.ps1 "opis zmiany"
 ```

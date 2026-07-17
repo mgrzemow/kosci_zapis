@@ -1180,6 +1180,42 @@
     if (document.visibilityState === "visible" && tableMode) { initAudio(); startKeepAlive(); acquireWakeLock(); }
   });
 
+  // ── Wykrywanie nowej wersji zasobów (deploy podbija ?v= w index.html) ──
+  var APP_VERSION = (function () {
+    try {
+      var s = document.querySelector('script[src*="app.js"]');
+      var m = s && s.src.match(/[?&]v=(\d+)/);
+      return m ? m[1] : null;
+    } catch (e) { return null; }
+  })();
+  var newVersionShown = false;
+  function showNewVersion() {
+    if (newVersionShown) return;
+    newVersionShown = true;
+    var el = document.createElement("div");
+    el.id = "newVersionBar";
+    el.textContent = "🔄 Nowa wersja aplikacji — dotknij, aby odświeżyć";
+    el.onclick = function () { location.reload(); };
+    document.body.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add("show"); });
+  }
+  function checkVersion() {
+    if (newVersionShown || !APP_VERSION || !window.fetch) return;
+    fetch("index.html?_=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (html) {
+        if (!html) return;
+        var m = html.match(/app\.js\?v=(\d+)/);
+        if (m && m[1] !== APP_VERSION) showNewVersion();
+      })
+      .catch(function () {});
+  }
+  setTimeout(checkVersion, 15000);                                  // krótko po starcie
+  setInterval(checkVersion, 180000);                                // i co 3 min
+  document.addEventListener("visibilitychange", function () {       // oraz po powrocie na wierzch (telefony)
+    if (document.visibilityState === "visible") checkVersion();
+  });
+
   window.addEventListener("hashchange", function () {
     if (location.hash && location.hash.indexOf("#/s/") === 0) {
       history.pushState({kosci: true}, "", location.href);
