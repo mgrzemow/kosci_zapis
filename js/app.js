@@ -1044,12 +1044,8 @@
     if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
     if (/^x$/i.test(raw)) {
       DB.setCell(sid, myPid, col, row, "X");
-      if (correcting) { endCorrection(sid); return; }   // korekta: kolejka zostaje bez zmian
-      // Skreślenie + lub − nie kończy tury, dopóki partner jest pusty (trzeba go osobno obsłużyć).
-      var pcell = grids[myPid] && grids[myPid][col];
-      var partnerEmpty = (row === "plus" || row === "minus") &&
-        R.isEmpty(pcell && pcell[row === "plus" ? "minus" : "plus"]);
-      if (!partnerEmpty) advanceTurn(sid, myPid);
+      // Skreślenie (także w polu „−”/„+”) to pełny ruch — przesuwa kolejkę. W korekcie kolejka zostaje.
+      if (correcting) endCorrection(sid); else advanceTurn(sid, myPid);
       return;
     }
     if (row === "plus" || row === "minus") {
