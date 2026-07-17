@@ -179,6 +179,17 @@
     var no = order.slice(), t = no[i]; no[i] = no[j]; no[j] = t;
     DB.setOrder(sid, no);
   }
+  // Po wpisaniu wyniku przesuń kolej na następnego gracza (tylko gdy to była moja kolej).
+  function advanceTurn(sid, myPid) {
+    var playerIds = Object.keys(curSession.players || {});
+    if (playerIds.length < 2) return;
+    var turnOrder = getOrder(curSession, playerIds);
+    var curTurn = (curSession.meta && curSession.meta.turn) || turnOrder[0];
+    if (curTurn !== myPid) return;
+    var idx = turnOrder.indexOf(myPid);
+    if (idx < 0) return;
+    DB.setTurn(sid, turnOrder[(idx + 1) % turnOrder.length]);
+  }
   // Ping u "kolejnego gracza": gdy gracz przede mną w kolejności zmieni swój zapis.
   function maybePing(myPid) {
     var finished = curSession.meta && curSession.meta.status === "finished";
@@ -1001,6 +1012,11 @@
     if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
     if (/^x$/i.test(raw)) {
       DB.setCell(sid, myPid, col, row, "X");
+      // Skreślenie + lub − nie kończy tury, dopóki partner jest pusty (trzeba go osobno obsłużyć).
+      var pcell = grids[myPid] && grids[myPid][col];
+      var partnerEmpty = (row === "plus" || row === "minus") &&
+        R.isEmpty(pcell && pcell[row === "plus" ? "minus" : "plus"]);
+      if (!partnerEmpty) advanceTurn(sid, myPid);
       return;
     }
     if (row === "plus" || row === "minus") {
@@ -1014,6 +1030,7 @@
     var res = R.validateCell(grids, myPid, col, row, val);
     if (!res.ok) { showError(res.reason); return false; }
     DB.setCell(sid, myPid, col, row, val);
+    advanceTurn(sid, myPid);
   }
 
   function showError(msg) {
